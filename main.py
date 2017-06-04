@@ -101,6 +101,14 @@ class server_manager():
             conn.sendall(str(len(fragment_list)).encode())
             conn.settimeout(None)
             conn.close()
+            request=''
+            for req_fr in self.requests['req_id']:
+                request+=req_fr
+
+
+            reqiest=[]
+            self.requests['req_id'].append(self.get_responce(requset=request))
+
 
 
 
