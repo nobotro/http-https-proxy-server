@@ -70,13 +70,13 @@ class server_manager():
         elif json_data['op']=='receive_fr_data':
 
             fragment_list=self.requests['req_id']
-            ragment_id=self.requests['fr_index']
+            fragment_id=self.requests['fr_index']
+
+            resp_fr_data=self.requests[json_data['res_id']]['responces'][fragment_id]
 
 
             conn.settimeout(settings.socket_timeout)
-
-
-
+            conn.sendall(resp_fr_data)
             conn.settimeout(None)
             conn.close()
 
