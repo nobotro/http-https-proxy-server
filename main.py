@@ -25,6 +25,46 @@ class server_manager():
             thr = threading.Thread(target=self.request_handler, args=(conn, addr))
             thr.start()
 
+
+    def get_responce(self,requset:str):
+        start=requset.find('Host:')
+        data = b''
+        if start!=-1
+            end=requset.find('/n',__start=start)
+
+            host=requset[start+5:end]
+
+            port=host.find(':')
+
+            if port!=-1:
+                host=host[:port]
+                port=host[port+1:]
+            else:
+                port=80
+
+            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
+            # Connect the socket to the port where the server is listening
+            server_address = (host, port)
+
+            sock.connect(server_address)
+            sock.sendall(requset)
+
+            while True:
+                temp=sock.recv(4096)
+                if temp:
+                    data+=temp
+                else:break
+
+            sock.close()
+        return data
+
+
+
+
+
+
+
     def handle(self,conn,addr):
 
         conn.settimeout(settings.socket_timeout)
@@ -61,6 +101,8 @@ class server_manager():
             conn.sendall(str(len(fragment_list)).encode())
             conn.settimeout(None)
             conn.close()
+
+
 
 
 
