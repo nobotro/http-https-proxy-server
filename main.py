@@ -5,7 +5,7 @@ import io
 import threading
 import settings
 import time
-
+import textwrap
 
 class server_manager():
 
@@ -15,30 +15,37 @@ class server_manager():
     def start_server(self):
 
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        sock.bind(('37.187.55.53', 1323))
+        sock.bind(('37.187.55.53', 1327))
         sock.listen(5)
 
 
         while True:
 
             conn,addr=sock.accept()
-            thr = threading.Thread(target=self.request_handler, args=(conn, addr))
+            thr = threading.Thread(target=self.handle, args=(conn, addr))
             thr.start()
+
+
+
+
 
 
     def get_responce(self,requset:str):
         start=requset.find('Host:')
         data = b''
-        if start!=-1
-            end=requset.find('/n',__start=start)
+        if start!=-1:
+            end=requset.find('\r\n',start)
 
             host=requset[start+5:end]
 
             port=host.find(':')
 
             if port!=-1:
-                host=host[:port]
-                port=host[port+1:]
+                ahost=host[:port]
+                aport=host[port+1:]
+                host=ahost
+                port=int(port)
+                ss=6
             else:
                 port=80
 
@@ -57,7 +64,9 @@ class server_manager():
                 else:break
 
             sock.close()
-        return data
+
+
+        return textwrap.wrap(data, 4000)
 
 
 
@@ -68,7 +77,8 @@ class server_manager():
     def handle(self,conn,addr):
 
         conn.settimeout(settings.socket_timeout)
-        json_data=json.loads(conn.recv(4000).decode(),encoding='utf-8')
+        data=conn.recv(4000).decode()
+        json_data=json.loads(data )
         conn.settimeout(None)
         responce_fragments=[]
 
@@ -79,14 +89,16 @@ class server_manager():
         if json_data['op']=='send_req_data':
 
             conn.settimeout(settings.socket_timeout)
-            conn.sendall('ack')
+            conn.sendall('ack'.encode())
             conn.settimeout(None)
 
-            #veb რექუესთების ლისტში,id-ის მიხედვით ვაგდებ ამ ფრაგმენტს
-            if self.requests[json_data['req_id']]:
-                self.requests[json_data['req_id']].append(json_data['data'])
-            else:
-                self.requests[json_data['req_id']]=[json_data['data']]
+            #veb რექუესთების ლისტში,id-ის მიხედვით ვაგდებ ამ რექვესთს
+
+            print(json_data)
+            print(self.requests)
+
+            self.requests[json_data['request_id']]={'request':json_data['data']}
+            self.requests[json_data['request_id']]['responce']=[]
             conn.close()
 
         #ეს ბრძანება მოდის როცა კლიენტი გვეკითხება თუ ვებ respon-სის რამდენი ფრაგმენტს ელოდოს ჩვენგან
@@ -96,18 +108,16 @@ class server_manager():
 
         elif json_data['op']=='receive_fr_count':
 
-            fragment_list=self.requests['req_id']
+            fragment_list=self.requests[json_data['request_id']]['responce']
             conn.settimeout(settings.socket_timeout)
             conn.sendall(str(len(fragment_list)).encode())
             conn.settimeout(None)
             conn.close()
-            request=''
-            for req_fr in self.requests['req_id']:
-                request+=req_fr
+            request=self.requests[json_data['request_id']]['request']
 
 
-            reqiest=[]
-            self.requests['req_id'].append(self.get_responce(requset=request))
+
+            self.requests[json_data['request_id']]['responce']+=self.get_responce(request)
 
 
 
@@ -119,7 +129,7 @@ class server_manager():
         #თუ ეს ბრძანება მივიღეთ ესეიგი კლიენტი ითხოვს ვებ რესპონსის კონკრეტულ ფრაგმენტს ჩვენგან
         elif json_data['op']=='receive_fr_data':
 
-            fragment_list=self.requests['req_id']
+            fragment_list=self.requests[json_data['request_id']]
             fragment_id=self.requests['fr_index']
 
             resp_fr_data=self.requests[json_data['res_id']]['responces'][fragment_id]
@@ -143,6 +153,14 @@ class server_manager():
 
 
 
+
+
+
+def server():
+    a=server_manager()
+    a.start_server()
+if __name__ == "__main__":
+    server()
 
 
 
