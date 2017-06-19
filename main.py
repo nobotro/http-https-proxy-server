@@ -31,12 +31,17 @@ class server_manager():
 
 
     def get_responce(self,requset:str):
-        start=requset.find('Host:')
+
+        start=requset.find('Host: www')
+        add=10
+        if start==-1:
+          start = requset.find('Host:')
+          add=6
         data = b''
         if start!=-1:
             end=requset.find('\r\n',start)
 
-            host=requset[start+5:end]
+            host=requset[start+add:end]
 
             port=host.find(':')
 
@@ -55,7 +60,7 @@ class server_manager():
             server_address = (host, port)
 
             sock.connect(server_address)
-            sock.sendall(requset)
+            sock.sendall(requset.encode())
 
             while True:
                 temp=sock.recv(4096)
@@ -65,8 +70,8 @@ class server_manager():
 
             sock.close()
 
-
-        return textwrap.wrap(data, 4000)
+        info = [data[i:i + 4000] for i in range(0, len(data), 4000)]
+        return info
 
 
 
@@ -94,11 +99,12 @@ class server_manager():
 
             #veb რექუესთების ლისტში,id-ის მიხედვით ვაგდებ ამ რექვესთს
 
-            print(json_data)
-            print(self.requests)
+
 
             self.requests[json_data['request_id']]={'request':json_data['data']}
             self.requests[json_data['request_id']]['responce']=[]
+            print(json_data)
+            print(self.requests)
             conn.close()
 
         #ეს ბრძანება მოდის როცა კლიენტი გვეკითხება თუ ვებ respon-სის რამდენი ფრაგმენტს ელოდოს ჩვენგან
@@ -107,17 +113,15 @@ class server_manager():
         #ვებ რესპონსის მიღების შემდეგ ცვენ ის უნდა დავყოთ ფრაგმენტებად 4000 ბაიტის ზომის და ვებ რექუესტების ლისტში უნდა შევყაროთ
 
         elif json_data['op']=='receive_fr_count':
+            request = self.requests[json_data['request_id']]['request']
+
+            self.requests[json_data['request_id']]['responce'] += self.get_responce(request)
 
             fragment_list=self.requests[json_data['request_id']]['responce']
             conn.settimeout(settings.socket_timeout)
             conn.sendall(str(len(fragment_list)).encode())
             conn.settimeout(None)
             conn.close()
-            request=self.requests[json_data['request_id']]['request']
-
-
-
-            self.requests[json_data['request_id']]['responce']+=self.get_responce(request)
 
 
 
@@ -129,10 +133,9 @@ class server_manager():
         #თუ ეს ბრძანება მივიღეთ ესეიგი კლიენტი ითხოვს ვებ რესპონსის კონკრეტულ ფრაგმენტს ჩვენგან
         elif json_data['op']=='receive_fr_data':
 
-            fragment_list=self.requests[json_data['request_id']]
-            fragment_id=self.requests['fr_index']
 
-            resp_fr_data=self.requests[json_data['res_id']]['responces'][fragment_id]
+
+            resp_fr_data=self.requests[json_data['request_id']]['responce'][json_data['fr_index']]
 
 
             conn.settimeout(settings.socket_timeout)
