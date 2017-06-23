@@ -52,25 +52,36 @@ class server_manager():
                 port=int(port)
                 ss=6
             else:
-                port=80
+                aport=80
 
             sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
             # Connect the socket to the port where the server is listening
-            server_address = (host, port)
+            server_address = (host, int(aport))
 
             sock.connect(server_address)
             sock.sendall(requset.encode())
 
             while True:
-                temp=sock.recv(4096)
+                temp=None
+                try:
+                    sock.settimeout(3)
+                    temp = sock.recv(4096)
+                    sock.settimeout(None)
+                except:
+                    sock.close()
+                    if temp:
+                     data+=temp
+                    break
+
+
                 if temp:
                     data+=temp
                 else:break
 
             sock.close()
 
-        info = [data[i:i + 4000] for i in range(0, len(data), 4000)]
+        info = [data[i:i + 1000] for i in range(0, len(data), 1000)]
         return info
 
 
@@ -83,7 +94,9 @@ class server_manager():
 
         conn.settimeout(settings.socket_timeout)
         data=conn.recv(4000).decode()
-        json_data=json.loads(data )
+        json_data=json.loads(data)
+        print(json_data)
+
         conn.settimeout(None)
         responce_fragments=[]
 
@@ -103,8 +116,6 @@ class server_manager():
 
             self.requests[json_data['request_id']]={'request':json_data['data']}
             self.requests[json_data['request_id']]['responce']=[]
-            print(json_data)
-            print(self.requests)
             conn.close()
 
         #ეს ბრძანება მოდის როცა კლიენტი გვეკითხება თუ ვებ respon-სის რამდენი ფრაგმენტს ელოდოს ჩვენგან
@@ -118,6 +129,7 @@ class server_manager():
             self.requests[json_data['request_id']]['responce'] += self.get_responce(request)
 
             fragment_list=self.requests[json_data['request_id']]['responce']
+            print('receive_fragment_count:' +str(len(fragment_list)))
             conn.settimeout(settings.socket_timeout)
             conn.sendall(str(len(fragment_list)).encode())
             conn.settimeout(None)
