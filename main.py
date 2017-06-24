@@ -6,7 +6,9 @@ import threading
 import settings
 import time
 import textwrap
-
+import email
+import pprint
+from io import StringIO
 class server_manager():
 
 
@@ -32,34 +34,44 @@ class server_manager():
 
     def get_responce(self,requset:str):
 
-        start=requset.find('Host: www')
-        add=10
-        if start==-1:
-          start = requset.find('Host:')
-          add=6
-        data = b''
-        if start!=-1:
-            end=requset.find('\r\n',start)
+        data=b''
+        try:
+            _, headers =requset.split('\r\n', 1)
+        except:
+            print('sgsg erori')
 
-            host=requset[start+add:end]
+        # construct a message from the request string
+        message = email.message_from_file(StringIO(headers))
 
-            port=host.find(':')
+        # construct a dictionary containing the headers
+        headers = dict(message.items())
+        headers['method'], headers['path'], headers['http-version'] = _.split()
 
-            if port!=-1:
-                ahost=host[:port]
-                aport=host[port+1:]
-                host=ahost
-                port=int(port)
-                ss=6
-            else:
-                aport=80
+        if headers['method']!='CONNECT':
+            host=headers['Host']
+            lr=host.split(':')
+            host=lr[0]
+            if len(lr)==2:
+                port=int(lr[1])
+
+            else:port=80
+
+
+
+
+
+
+
 
             sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
             # Connect the socket to the port where the server is listening
-            server_address = (host, int(aport))
-
-            sock.connect(server_address)
+            server_address = (host,port)
+            print(server_address)
+            try:
+             sock.connect(server_address)
+            except:
+                print('shsh')
             sock.sendall(requset.encode())
 
             while True:
@@ -70,18 +82,19 @@ class server_manager():
                     sock.settimeout(None)
                 except:
                     sock.close()
-                    if temp:
-                     data+=temp
+
                     break
 
 
                 if temp:
                     data+=temp
-                else:break
+                else:
+                    sock.close()
+                    break
 
-            sock.close()
 
-        info = [data[i:i + 1000] for i in range(0, len(data), 1000)]
+
+        info = [data[i:i + 4000] for i in range(0, len(data), 4000)]
         return info
 
 
