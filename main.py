@@ -1,4 +1,6 @@
+import base64
 import json
+import pickle
 import socket
 import sys
 import io
@@ -33,14 +35,14 @@ class server_manager():
 
 
 
+#ბინარი სტრინგი მოდის თავიდან და არა რექვესთი
 
-
-    def get_responce(self,requset,sesion=False):
+    def get_responce(self,requset,sesion=None,https=False):
 
         data = b''
         sock=''
 
-        if not sesion:
+        if not https:
 
             try:
                 _, headers =requset.split('\r\n', 1)
@@ -106,43 +108,9 @@ class server_manager():
                         sock.close()
                         break
 
-            else:
-
-                sock=''
-                if not sesion:
-                    host = headers['path']
-                    lr = host.split(':')
-                    host = lr[0]
-                    if len(lr) == 2:
-                        port = int(lr[1])
-
-                    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-
-                    # Connect the socket to the port where the server is listening
-                    server_address = (host, port)
-                    sock.connect(server_address)
-
-                    sock.sendall(requset.encode())
-
-                    while True:
-                        try:
-                            sock.settimeout(1)
-                            t_data=sock.recv(4094)
-                            sock.settimeout(None)
-                            if t_data:
-                                data+=t_data
-                            else:
-                                sock.close()
 
 
 
-                        except socket.timeout:
-                            break
-                        except:
-                            sock.close()
-                            break
-                    info = [data[i:i + 4000] for i in range(0, len(data), 4000)]
-                    return info, sock
 
 
 
@@ -150,26 +118,85 @@ class server_manager():
 
 
         else:
-                    sock=sesion
-                    while True:
-                        try:
-                            sock.settimeout(1)
-                            t_data = sock.recv(4094)
-                            sock.settimeout(None)
-                            if t_data:
-                                data += t_data
-                            else:
-                                sock.close()
 
 
+            if not sesion:
+                sock =''
+                try:
+                    _, headers = requset.split('\r\n', 1)
+                except:
+                    print('sgsg erori')
 
-                        except socket.timeout:
-                            break
-                        except:
+                    # construct a message from the request string
+                message = email.message_from_file(StringIO(headers))
+
+                # construct a dictionary containing the headers
+                headers = dict(message.items())
+                headers['method'], headers['path'], headers['http-version'] = _.split()
+
+
+                host = headers['path']
+                lr = host.split(':')
+                host = lr[0]
+                if len(lr) == 2:
+                    port = int(lr[1])
+
+                sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
+                # Connect the socket to the port where the server is listening
+                server_address = (host, port)
+                sock.connect(server_address)
+
+                sock.sendall(requset.encode())
+
+                while True:
+                    try:
+                        sock.settimeout(1)
+                        t_data = sock.recv(4094)
+                        sock.settimeout(None)
+                        if t_data:
+                            data += t_data
+                        else:
                             sock.close()
 
-                    info = [data[i:i + 4000] for i in range(0, len(data), 4000)]
-                    return info,sock
+
+
+                    except socket.timeout:
+                        break
+                    except:
+                        sock.close()
+                        break
+                info = [data[i:i + 4000] for i in range(0, len(data), 4000)]
+                return info, sock
+            else:
+                sock =sesion
+
+
+                sock.sendall(requset.encode())
+
+                while True:
+                    try:
+                        sock.settimeout(1)
+                        t_data = sock.recv(4094)
+                        sock.settimeout(None)
+                        if t_data:
+                            data += t_data
+                        else:
+                            sock.close()
+
+
+
+                    except socket.timeout:
+                        break
+                    except:
+                        sock.close()
+                        break
+                info = [data[i:i + 4000] for i in range(0, len(data), 4000)]
+                return info
+
+
+
+
 
 
 
@@ -252,13 +279,13 @@ class server_manager():
             conn.close()
 
         elif  json_data['op']=='https_receive_fr_count':
-            request = self.requests[json_data['request_id']]['request']
-
+            request =self.requests[json_data['request_id']]['request']
+            a='f' in {'p':2}.keys()
             if json_data['request_id'] in self.https_sesions.keys():
                 sesion = self.https_sesions[json_data['request_id']]
-                self.requests[json_data['request_id']]['responce'] += self.get_responce(request, sesion=sesion)
+                self.requests[json_data['request_id']]['responce'] += self.get_responce(request, sesion=sesion,https=True)
             else:
-                data, sesion = self.get_responce(request, sesion=None)
+                data, sesion = self.get_responce(request, sesion=None,https=True)
                 self.https_sesions[json_data['request_id']] = sesion
                 self.requests[json_data['request_id']]['responce'] +=data
 
