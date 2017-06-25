@@ -15,6 +15,7 @@ class server_manager():
 
 
     requests={}
+    https_sesions={}
 
     def start_server(self):
 
@@ -34,72 +35,144 @@ class server_manager():
 
 
 
-    def get_responce(self,requset:str):
+    def get_responce(self,requset,sesion=False):
 
-        data=b''
-        try:
-            _, headers =requset.split('\r\n', 1)
-        except:
-            print('sgsg erori')
+        data = b''
+        sock=''
 
-        # construct a message from the request string
-        message = email.message_from_file(StringIO(headers))
+        if not sesion:
 
-        # construct a dictionary containing the headers
-        headers = dict(message.items())
-        headers['method'], headers['path'], headers['http-version'] = _.split()
-
-        if headers['method']!='CONNECT':
-
-            url= urlparse(headers['path'])
-
-            requset=requset.replace(headers['path'],headers['path'].replace(url.scheme+'://'+url.netloc,''))
-            host=headers['Host']
-            lr=host.split(':')
-            host=lr[0]
-            if len(lr)==2:
-                port=int(lr[1])
-
-            else:port=80
-
-
-
-
-
-
-
-
-            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-
-            # Connect the socket to the port where the server is listening
-            server_address = (host,port)
-            print(server_address)
             try:
-             sock.connect(server_address)
+                _, headers =requset.split('\r\n', 1)
             except:
-                print('shsh')
-            sock.sendall(requset.encode())
-            print('request----------------------'+requset)
+                print('sgsg erori')
 
-            print('-------------------------------')
+            # construct a message from the request string
+            message = email.message_from_file(StringIO(headers))
 
-            while True:
-                temp=None
+            # construct a dictionary containing the headers
+            headers = dict(message.items())
+            headers['method'], headers['path'], headers['http-version'] = _.split()
+
+            if headers['method']!='CONNECT':
+
+                url= urlparse(headers['path'])
+
+                requset=requset.replace(headers['path'],headers['path'].replace(url.scheme+'://'+url.netloc,''))
+                host=headers['Host']
+                lr=host.split(':')
+                host=lr[0]
+                if len(lr)==2:
+                    port=int(lr[1])
+
+                else:port=80
+
+
+
+
+
+
+
+
+                sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
+                # Connect the socket to the port where the server is listening
+                server_address = (host,port)
+                print(server_address)
                 try:
-                    sock.settimeout(3)
-                    temp = sock.recv(4096)
-                    sock.settimeout(None)
+                 sock.connect(server_address)
                 except:
-                    sock.close()
+                    print('shsh')
+                sock.sendall(requset.encode())
+                print('request----------------------'+requset)
 
-                    break
+                print('-------------------------------')
+
+                while True:
+                    temp=None
+                    try:
+                        sock.settimeout(3)
+                        temp = sock.recv(4096)
+                        sock.settimeout(None)
+                    except:
+                        sock.close()
+
+                        break
 
 
-                if temp:
-                    data+=temp
-                else:
-                    sock.close()
-                    break
+                    if temp:
+                        data+=temp
+                    else:
+                        sock.close()
+                        break
+
+            else:
+
+                sock=''
+                if not sesion:
+                    host = headers['path']
+                    lr = host.split(':')
+                    host = lr[0]
+                    if len(lr) == 2:
+                        port = int(lr[1])
+
+                    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
+                    # Connect the socket to the port where the server is listening
+                    server_address = (host, port)
+                    sock.connect(server_address)
+
+                    sock.sendall(requset.encode())
+
+                    while True:
+                        try:
+                            sock.settimeout(1)
+                            t_data=sock.recv(4094)
+                            sock.settimeout(None)
+                            if t_data:
+                                data+=t_data
+                            else:
+                                sock.close()
+
+
+
+                        except socket.timeout:
+                            break
+                        except:
+                            sock.close()
+                    info = [data[i:i + 4000] for i in range(0, len(data), 4000)]
+                    return info, sock
+
+
+
+
+
+
+        else:
+                    sock=sesion
+                    while True:
+                        try:
+                            sock.settimeout(1)
+                            t_data = sock.recv(4094)
+                            sock.settimeout(None)
+                            if t_data:
+                                data += t_data
+                            else:
+                                sock.close()
+
+
+
+                        except socket.timeout:
+                            break
+                        except:
+                            sock.close()
+
+                    info = [data[i:i + 4000] for i in range(0, len(data), 4000)]
+                    return info,sock
+
+
+
+
 
 
 
@@ -177,20 +250,23 @@ class server_manager():
             conn.settimeout(None)
             conn.close()
 
+        elif  json_data['op']=='https_receive_fr_count':
+            request = self.requests[json_data['request_id']]['request']
 
+            if self.https_sesions[json_data['request_id']]:
+                sesion = self.https_sesions[json_data['request_id']]
+                self.requests[json_data['request_id']]['responce'] += self.get_responce(request, sesion=sesion)
+            else:
+                data, sesion = self.get_responce(request, sesion=None)
+                self.https_sesions[json_data['request_id']] = sesion
+                self.requests[json_data['request_id']]['responce'] +=data
 
-
-
-
-
-
-
-
-
-
-
-
-
+            fragment_list = self.requests[json_data['request_id']]['responce']
+            print('receive_fragment_count:' + str(len(fragment_list)))
+            conn.settimeout(settings.socket_timeout)
+            conn.sendall(str(len(fragment_list)).encode())
+            conn.settimeout(None)
+            conn.close()
 
 
 def server():
