@@ -3,6 +3,8 @@ import socket
 import sys
 import io
 import threading
+from urllib.parse import urlparse
+
 import settings
 import time
 import textwrap
@@ -48,6 +50,10 @@ class server_manager():
         headers['method'], headers['path'], headers['http-version'] = _.split()
 
         if headers['method']!='CONNECT':
+
+            url= urlparse(headers['path'])
+
+            requset=requset.replace(headers['path'],headers['path'].replace(url.scheme+'://'+url.netloc,''))
             host=headers['Host']
             lr=host.split(':')
             host=lr[0]
@@ -73,6 +79,9 @@ class server_manager():
             except:
                 print('shsh')
             sock.sendall(requset.encode())
+            print('request----------------------'+requset)
+
+            print('-------------------------------')
 
             while True:
                 temp=None
