@@ -48,6 +48,8 @@ class server_manager():
                 _, headers =requset.split('\r\n', 1)
             except:
                 print('sgsg erori')
+                print(requset)
+                print(sesion)
 
             # construct a message from the request string
             message = email.message_from_file(StringIO(headers))
@@ -147,32 +149,17 @@ class server_manager():
                 server_address = (host, port)
                 sock.connect(server_address)
 
-                sock.sendall(requset.encode())
 
-                while True:
-                    try:
-                        sock.settimeout(1)
-                        t_data = sock.recv(4094)
-                        sock.settimeout(None)
-                        if t_data:
-                            data += t_data
-                        else:
-                            sock.close()
-
-
-
-                    except socket.timeout:
-                        break
-                    except:
-                        sock.close()
-                        break
-                info = [data[i:i + 4000] for i in range(0, len(data), 4000)]
-                return info, sock
+                return sock
             else:
+                print('ses'+str(sesion))
                 sock =sesion
+                requset=base64.decodebytes(requset.encode())
 
 
-                sock.sendall(requset.encode())
+
+
+                sock.sendall(requset)
 
                 while True:
                     try:
@@ -285,9 +272,8 @@ class server_manager():
                 sesion = self.https_sesions[json_data['request_id']]
                 self.requests[json_data['request_id']]['responce'] += self.get_responce(request, sesion=sesion,https=True)
             else:
-                data, sesion = self.get_responce(request, sesion=None,https=True)
+                sesion = self.get_responce(request, sesion=None,https=True)
                 self.https_sesions[json_data['request_id']] = sesion
-                self.requests[json_data['request_id']]['responce'] +=data
 
             fragment_list = self.requests[json_data['request_id']]['responce']
             print('receive_fragment_count:' + str(len(fragment_list)))
