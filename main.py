@@ -1,4 +1,5 @@
 import base64
+import datetime
 import json
 import pickle
 import socket
@@ -6,6 +7,8 @@ import sys
 import io
 import threading
 from urllib.parse import urlparse
+
+import zlib
 
 import settings
 import time
@@ -48,8 +51,7 @@ class server_manager():
                 _, headers =requset.split('\r\n', 1)
             except:
                 print('sgsg erori')
-                print(requset)
-                print(sesion)
+
 
             # construct a message from the request string
             message = email.message_from_file(StringIO(headers))
@@ -82,7 +84,7 @@ class server_manager():
 
                 # Connect the socket to the port where the server is listening
                 server_address = (host,port)
-                print(server_address)
+                # print(server_address)
                 try:
                  sock.connect(server_address)
                 except:
@@ -152,23 +154,27 @@ class server_manager():
 
                 return sock
             else:
-                print('ses'+str(sesion))
+
                 sock =sesion
                 requset=base64.decodebytes(requset.encode())
+                requset=zlib.decompress(requset)
 
 
 
 
                 sock.sendall(requset)
+                st = datetime.datetime.now()
+
 
                 while True:
                     try:
                         sock.settimeout(1)
-                        t_data = sock.recv(4094)
+                        t_data = sock.recv(10000)
                         sock.settimeout(None)
                         if t_data:
                             data += t_data
                         else:
+
                             sock.close()
 
 
@@ -178,7 +184,10 @@ class server_manager():
                     except:
                         sock.close()
                         break
-                info = [data[i:i + 4000] for i in range(0, len(data), 4000)]
+                end = datetime.datetime.now()
+
+                print('time to get responce' + str(end - st) + 'len' + str(len(data)))
+                info = [data[i:i + 8000] for i in range(0, len(data), 8000)]
                 return info
 
 
@@ -191,7 +200,7 @@ class server_manager():
 
 
 
-        info = [data[i:i + 4000] for i in range(0, len(data), 4000)]
+        info = [data[i:i + 8000] for i in range(0, len(data), 8000)]
         return info
 
 
@@ -205,7 +214,7 @@ class server_manager():
         conn.settimeout(settings.socket_timeout)
         data=conn.recv(4000).decode()
         json_data=json.loads(data)
-        print(json_data)
+        # print(json_data)
 
         conn.settimeout(None)
         responce_fragments=[]
@@ -239,7 +248,7 @@ class server_manager():
             self.requests[json_data['request_id']]['responce'] += self.get_responce(request)
 
             fragment_list=self.requests[json_data['request_id']]['responce']
-            print('receive_fragment_count:' +str(len(fragment_list)))
+            # print('receive_fragment_count:' +str(len(fragment_list)))
             conn.settimeout(settings.socket_timeout)
             conn.sendall(str(len(fragment_list)).encode())
             conn.settimeout(None)
@@ -266,11 +275,17 @@ class server_manager():
             conn.close()
 
         elif  json_data['op']=='https_receive_fr_count':
+
             request =self.requests[json_data['request_id']]['request']
-            a='f' in {'p':2}.keys()
+
             if json_data['request_id'] in self.https_sesions.keys():
                 sesion = self.https_sesions[json_data['request_id']]
+
+
                 self.requests[json_data['request_id']]['responce'] += self.get_responce(request, sesion=sesion,https=True)
+
+
+
             else:
                 sesion = self.get_responce(request, sesion=None,https=True)
                 self.https_sesions[json_data['request_id']] = sesion
