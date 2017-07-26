@@ -21,16 +21,17 @@ class server_manager():
 
     def start_server(self):
 
-        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+
         sock.bind(('37.187.55.53', 1327))
-        sock.listen(5)
+
 
 
         while True:
 
-            conn,addr=sock.accept()
-            thr = threading.Thread(target=self.handle, args=(conn, addr))
-            thr.start()
+
+           self.handle(sock)
+
 
 
 
@@ -200,14 +201,15 @@ class server_manager():
 
 
 
-    def handle(self,conn,addr):
+    def handle(self,conn):
 
-        conn.settimeout(settings.socket_timeout)
-        data=conn.recv(4000).decode()
+
+        data,addr=conn.recvfrom(65507)
+        data=data.decode()
         json_data=json.loads(data)
         print(json_data)
 
-        conn.settimeout(None)
+
         responce_fragments=[]
 
 
@@ -216,9 +218,9 @@ class server_manager():
 
         if json_data['op']=='send_req_data':
 
-            conn.settimeout(settings.socket_timeout)
-            conn.sendall('ack'.encode())
-            conn.settimeout(None)
+
+            conn.sendto(addr,'ack'.encode())
+
 
             #veb რექუესთების ლისტში,id-ის მიხედვით ვაგდებ ამ რექვესთს
 
@@ -226,7 +228,7 @@ class server_manager():
 
             self.requests[json_data['request_id']]={'request':json_data['data']}
             self.requests[json_data['request_id']]['responce']=[]
-            conn.close()
+
 
         #ეს ბრძანება მოდის როცა კლიენტი გვეკითხება თუ ვებ respon-სის რამდენი ფრაგმენტს ელოდოს ჩვენგან
         #თუ ამ ბრძანებას მივიღებთ,ეს ნიშნავს რომ კლიენტმა უკვე სრულად გამოგვიგზავნა ვებ request-ი და ეხლა web რესპონსს ელოდება
@@ -240,10 +242,10 @@ class server_manager():
 
             fragment_list=self.requests[json_data['request_id']]['responce']
             print('receive_fragment_count:' +str(len(fragment_list)))
-            conn.settimeout(settings.socket_timeout)
-            conn.sendall(str(len(fragment_list)).encode())
-            conn.settimeout(None)
-            conn.close()
+
+            conn.sendto(addr,str(len(fragment_list)).encode())
+
+
 
 
 
@@ -260,10 +262,8 @@ class server_manager():
             resp_fr_data=self.requests[json_data['request_id']]['responce'][json_data['fr_index']]
 
 
-            conn.settimeout(settings.socket_timeout)
-            conn.sendall(resp_fr_data)
-            conn.settimeout(None)
-            conn.close()
+
+            conn.sendto(addr,resp_fr_data)
 
         elif  json_data['op']=='https_receive_fr_count':
             request =self.requests[json_data['request_id']]['request']
