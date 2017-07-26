@@ -179,7 +179,7 @@ class server_manager():
                     except:
                         sock.close()
                         break
-                info = [data[i:i + 4000] for i in range(0, len(data), 4000)]
+                info = [data[i:i + 65507] for i in range(0, len(data), 65507)]
                 return info
 
 
@@ -219,7 +219,7 @@ class server_manager():
         if json_data['op']=='send_req_data':
 
 
-            conn.sendto(addr,'ack'.encode())
+            conn.sendto('ack'.encode(),addr)
 
 
             #veb რექუესთების ლისტში,id-ის მიხედვით ვაგდებ ამ რექვესთს
@@ -243,7 +243,7 @@ class server_manager():
             fragment_list=self.requests[json_data['request_id']]['responce']
             print('receive_fragment_count:' +str(len(fragment_list)))
 
-            conn.sendto(addr,str(len(fragment_list)).encode())
+            conn.sendto(str(len(fragment_list)).encode(),addr)
 
 
 
@@ -263,7 +263,7 @@ class server_manager():
 
 
 
-            conn.sendto(addr,resp_fr_data)
+            conn.sendto(resp_fr_data,addr)
 
         elif  json_data['op']=='https_receive_fr_count':
             request =self.requests[json_data['request_id']]['request']
