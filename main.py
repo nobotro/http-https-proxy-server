@@ -17,7 +17,7 @@ class server_manager():
 
 
     requests={}
-    https_sesions={}
+    https_sesions ={}
 
     def start_server(self):
 
@@ -27,10 +27,14 @@ class server_manager():
 
 
 
+
+
         while True:
+            data, addr = sock.recvfrom(65507)
+            thr = threading.Thread(target= self.handle, args=(data,addr,sock))
+            thr.start()
 
 
-           self.handle(sock)
 
 
 
@@ -96,8 +100,8 @@ class server_manager():
                 while True:
                     temp=None
                     try:
-                        sock.settimeout(3)
-                        temp = sock.recv(4096)
+                        sock.settimeout(1)
+                        temp = sock.recv(67500)
                         sock.settimeout(None)
                     except:
                         sock.close()
@@ -165,7 +169,7 @@ class server_manager():
                 while True:
                     try:
                         sock.settimeout(1)
-                        t_data = sock.recv(4094)
+                        t_data = sock.recv(65000)
                         sock.settimeout(None)
                         if t_data:
                             data += t_data
@@ -192,7 +196,7 @@ class server_manager():
 
 
 
-        info = [data[i:i + 4000] for i in range(0, len(data), 4000)]
+        info = [data[i:i + 65507] for i in range(0, len(data), 65507)]
         return info
 
 
@@ -201,10 +205,10 @@ class server_manager():
 
 
 
-    def handle(self,conn):
+    def handle(self,data,addr,conn):
 
 
-        data,addr=conn.recvfrom(65507)
+
         data=data.decode()
         json_data=json.loads(data)
         print(json_data)
@@ -277,10 +281,8 @@ class server_manager():
 
             fragment_list = self.requests[json_data['request_id']]['responce']
             print('receive_fragment_count:' + str(len(fragment_list)))
-            conn.settimeout(settings.socket_timeout)
-            conn.sendall(str(len(fragment_list)).encode())
-            conn.settimeout(None)
-            conn.close()
+            conn.sendto(str(len(fragment_list)).encode(), addr)
+
 
 
 def server():
