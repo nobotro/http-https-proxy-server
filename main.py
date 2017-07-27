@@ -30,7 +30,9 @@ class server_manager():
 
 
         while True:
+
             data, addr = sock.recvfrom(65507)
+
             thr = threading.Thread(target= self.handle, args=(data,addr,sock))
             thr.start()
 
@@ -91,11 +93,9 @@ class server_manager():
                 try:
                  sock.connect(server_address)
                 except:
-                    print('shsh')
-                sock.sendall(requset.encode())
-                print('request----------------------'+requset)
 
-                print('-------------------------------')
+                 sock.sendall(requset.encode())
+
 
                 while True:
                     temp=None
@@ -114,12 +114,6 @@ class server_manager():
                     else:
                         sock.close()
                         break
-
-
-
-
-
-
 
 
 
@@ -250,14 +244,6 @@ class server_manager():
             conn.sendto(str(len(fragment_list)).encode(),addr)
 
 
-
-
-
-
-
-
-
-
         #თუ ეს ბრძანება მივიღეთ ესეიგი კლიენტი ითხოვს ვებ რესპონსის კონკრეტულ ფრაგმენტს ჩვენგან
         elif json_data['op']=='receive_fr_data':
 
@@ -271,7 +257,7 @@ class server_manager():
 
         elif  json_data['op']=='https_receive_fr_count':
             request =self.requests[json_data['request_id']]['request']
-            a='f' in {'p':2}.keys()
+
             if json_data['request_id'] in self.https_sesions.keys():
                 sesion = self.https_sesions[json_data['request_id']]
                 self.requests[json_data['request_id']]['responce'] += self.get_responce(request, sesion=sesion,https=True)
