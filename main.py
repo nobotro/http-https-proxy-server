@@ -30,11 +30,13 @@ class server_manager():
 
 
         while True:
+            try:
+                data, addr = sock.recvfrom(65507)
 
-            data, addr = sock.recvfrom(65507)
-
-            thr = threading.Thread(target= self.handle, args=(data,addr,sock))
-            thr.start()
+                thr = threading.Thread(target= self.handle, args=(data,addr,sock))
+                thr.start()
+            except:
+             pass
 
 
 
@@ -54,9 +56,10 @@ class server_manager():
             try:
                 _, headers =requset.split('\r\n', 1)
             except:
-                print('sgsg erori')
-                print(requset)
-                print(sesion)
+                pass
+               #print('sgsg erori')
+                #print(requset)
+                #print(sesion)
 
             # construct a message from the request string
             message = email.message_from_file(StringIO(headers))
@@ -79,31 +82,27 @@ class server_manager():
                 else:port=80
 
 
-
-
-
-
-
-
                 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
                 # Connect the socket to the port where the server is listening
                 server_address = (host,port)
-                print(server_address)
+                #print(server_address)
                 try:
                  sock.connect(server_address)
                 except:
 
-                 sock.sendall(requset.encode())
+                    pass
+
+                sock.sendall(requset.encode())
 
 
                 while True:
                     temp=None
                     try:
-                        sock.settimeout(1)
                         temp = sock.recv(67500)
                         sock.settimeout(None)
                     except:
+                        sock.settimeout(None)
                         sock.close()
 
                         break
@@ -126,7 +125,8 @@ class server_manager():
                 try:
                     _, headers = requset.split('\r\n', 1)
                 except:
-                    print('sgsg erori')
+                    pass
+                    #print('sgsg erori')
 
                     # construct a message from the request string
                 message = email.message_from_file(StringIO(headers))
@@ -151,7 +151,7 @@ class server_manager():
 
                 return sock
             else:
-                print('ses'+str(sesion))
+                #print('ses'+str(sesion))
                 sock =sesion
                 requset=base64.decodebytes(requset.encode())
 
@@ -162,7 +162,8 @@ class server_manager():
 
                 while True:
                     try:
-                        sock.settimeout(1)
+
+                        sock.settimeout(0.5)
                         t_data = sock.recv(65000)
                         sock.settimeout(None)
                         if t_data:
@@ -173,10 +174,13 @@ class server_manager():
 
 
                     except socket.timeout:
+                        sock.settimeout(None)
                         break
                     except:
+                        sock.settimeout(None)
                         sock.close()
                         break
+
                 info = [data[i:i + 65507] for i in range(0, len(data), 65507)]
                 return info
 
@@ -203,71 +207,86 @@ class server_manager():
 
 
 
-        data=data.decode()
-        json_data=json.loads(data)
-        print(json_data)
+            data=data.decode()
+            json_data=json.loads(data)
+            # print(json_data)
 
 
-        responce_fragments=[]
+            responce_fragments=[]
 
 
-        #ეს ბრძანება მოდის როცა კლიენტი გვიგზავნის ვებ რექუესთის ფრაგმენტს
-        #ჩვენ ვუგზავნით 'ack'-ს რომ დავადასტუროთ მიღება
+            #ეს ბრძანება მოდის როცა კლიენტი გვიგზავნის ვებ რექუესთის ფრაგმენტს
+            #ჩვენ ვუგზავნით 'ack'-ს რომ დავადასტუროთ მიღება
 
-        if json_data['op']=='send_req_data':
+            if json_data['op']=='send_req_data':
 
-
-            conn.sendto('ack'.encode(),addr)
-
-
-            #veb რექუესთების ლისტში,id-ის მიხედვით ვაგდებ ამ რექვესთს
+                print("received request with id: "+str(json_data['request_id']))
+                conn.sendto('ack'.encode(),addr)
 
 
-
-            self.requests[json_data['request_id']]={'request':json_data['data']}
-            self.requests[json_data['request_id']]['responce']=[]
-
-
-        #ეს ბრძანება მოდის როცა კლიენტი გვეკითხება თუ ვებ respon-სის რამდენი ფრაგმენტს ელოდოს ჩვენგან
-        #თუ ამ ბრძანებას მივიღებთ,ეს ნიშნავს რომ კლიენტმა უკვე სრულად გამოგვიგზავნა ვებ request-ი და ეხლა web რესპონსს ელოდება
-        #ამავე კოდში უნდა მოხდეს ვებ რექუესთის რეალურ სერვერზე გაგზავნა და ვებ რესპონსის მიღება
-        #ვებ რესპონსის მიღების შემდეგ ცვენ ის უნდა დავყოთ ფრაგმენტებად 4000 ბაიტის ზომის და ვებ რექუესტების ლისტში უნდა შევყაროთ
-
-        elif json_data['op']=='receive_fr_count':
-            request = self.requests[json_data['request_id']]['request']
-
-            self.requests[json_data['request_id']]['responce'] += self.get_responce(request)
-
-            fragment_list=self.requests[json_data['request_id']]['responce']
-            print('receive_fragment_count:' +str(len(fragment_list)))
-
-            conn.sendto(str(len(fragment_list)).encode(),addr)
-
-
-        #თუ ეს ბრძანება მივიღეთ ესეიგი კლიენტი ითხოვს ვებ რესპონსის კონკრეტულ ფრაგმენტს ჩვენგან
-        elif json_data['op']=='receive_fr_data':
+                #veb რექუესთების ლისტში,id-ის მიხედვით ვაგდებ ამ რექვესთს
 
 
 
-            resp_fr_data=self.requests[json_data['request_id']]['responce'][json_data['fr_index']]
+                self.requests[json_data['request_id']]={'request':json_data['data']}
+                self.requests[json_data['request_id']]['responce']=[]
+
+
+            #ეს ბრძანება მოდის როცა კლიენტი გვეკითხება თუ ვებ respon-სის რამდენი ფრაგმენტს ელოდოს ჩვენგან
+            #თუ ამ ბრძანებას მივიღებთ,ეს ნიშნავს რომ კლიენტმა უკვე სრულად გამოგვიგზავნა ვებ request-ი და ეხლა web რესპონსს ელოდება
+            #ამავე კოდში უნდა მოხდეს ვებ რექუესთის რეალურ სერვერზე გაგზავნა და ვებ რესპონსის მიღება
+            #ვებ რესპონსის მიღების შემდეგ ცვენ ის უნდა დავყოთ ფრაგმენტებად 4000 ბაიტის ზომის და ვებ რექუესტების ლისტში უნდა შევყაროთ
+
+            elif json_data['op']=='receive_fr_count':
+
+
+                request = self.requests[json_data['request_id']]['request']
+
+                del(self.requests[json_data['request_id']]['request'])
+
+                self.requests[json_data['request_id']]['responce'] += self.get_responce(request)
+
+                print("received url content with id: " + str(json_data['request_id']))
+
+                fragment_list=self.requests[json_data['request_id']]['responce']
+                # print('receive_fragment_count:' +str(len(fragment_list)))
+
+                conn.sendto(str(len(fragment_list)).encode(),addr)
+
+
+            #თუ ეს ბრძანება მივიღეთ ესეიგი კლიენტი ითხოვს ვებ რესპონსის კონკრეტულ ფრაგმენტს ჩვენგან
+            elif json_data['op']=='receive_fr_data':
+
+
+                if 'action' in json_data:
+                    self.requests[json_data['request_id']]['responce'][json_data['fr_index']]=''
+                else:
+
+                    print("fragment request with id: " + str(json_data['request_id'])+' and fragment id: '+str(json_data['fr_index']))
+                    resp_fr_data=self.requests[json_data['request_id']]['responce'][json_data['fr_index']]
 
 
 
-            conn.sendto(resp_fr_data,addr)
+                    conn.sendto(resp_fr_data,addr)
 
-        elif  json_data['op']=='https_receive_fr_count':
-            request =self.requests[json_data['request_id']]['request']
 
-            if json_data['request_id'] in self.https_sesions.keys():
-                sesion = self.https_sesions[json_data['request_id']]
-                self.requests[json_data['request_id']]['responce'] += self.get_responce(request, sesion=sesion,https=True)
-            else:
-                sesion = self.get_responce(request, sesion=None,https=True)
-                self.https_sesions[json_data['request_id']] = sesion
+            elif  json_data['op']=='https_receive_fr_count':
+                request =self.requests[json_data['request_id']]['request']
 
-            fragment_list = self.requests[json_data['request_id']]['responce']
-            print('receive_fragment_count:' + str(len(fragment_list)))
-            conn.sendto(str(len(fragment_list)).encode(), addr)
+                if json_data['request_id'] in self.https_sesions.keys():
+                    sesion = self.https_sesions[json_data['request_id']]
+                    self.requests[json_data['request_id']]['responce'] += self.get_responce(request, sesion=sesion,https=True)
+                    del(self.requests[json_data['request_id']]['request'])
+
+
+                else:
+                    sesion = self.get_responce(request, sesion=None,https=True)
+                    self.https_sesions[json_data['request_id']] = sesion
+
+                fragment_list = self.requests[json_data['request_id']]['responce']
+                # print('receive_fragment_count:' + str(len(fragment_list)))
+                conn.sendto(str(len(fragment_list)).encode(), addr)
+
 
 
 
