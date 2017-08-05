@@ -99,6 +99,7 @@ class server_manager():
                 while True:
                     temp=None
                     try:
+                        sock.settimeout(settings.global_timeout)
                         temp = sock.recv(67500)
                         sock.settimeout(None)
                     except:
@@ -163,7 +164,7 @@ class server_manager():
                 while True:
                     try:
 
-                        sock.settimeout(0.5)
+                        sock.settimeout(settings.global_timeout)
                         t_data = sock.recv(65000)
                         sock.settimeout(None)
                         if t_data:
@@ -239,16 +240,19 @@ class server_manager():
 
             elif json_data['op']=='receive_fr_count':
 
+                #თუ უკვე რესპონსი გვაქვს ამ რექვესთის,მეორედ რომ აღარ ამოვიღოთ
+                if len(self.requests[json_data['request_id']]['responce'])<=0:
 
-                request = self.requests[json_data['request_id']]['request']
+                    request = self.requests[json_data['request_id']]['request']
 
-                del(self.requests[json_data['request_id']]['request'])
+                    del(self.requests[json_data['request_id']]['request'])
 
-                self.requests[json_data['request_id']]['responce'] += self.get_responce(request)
+                    self.requests[json_data['request_id']]['responce'] += self.get_responce(request)
 
                 print("received url content with id: " + str(json_data['request_id']))
 
                 fragment_list=self.requests[json_data['request_id']]['responce']
+                print("received url content with id: " + str(json_data['request_id'])+ ' fragment_count:' +str(len(fragment_list)))
                 # print('receive_fragment_count:' +str(len(fragment_list)))
 
                 conn.sendto(str(len(fragment_list)).encode(),addr)
@@ -258,7 +262,7 @@ class server_manager():
             elif json_data['op']=='receive_fr_data':
 
 
-                if 'action' in json_data:
+                if 'action' in json_data.keys():
                     self.requests[json_data['request_id']]['responce'][json_data['fr_index']]=''
                 else:
 
@@ -268,15 +272,20 @@ class server_manager():
 
 
                     conn.sendto(resp_fr_data,addr)
+                    print("gaigzavna: " + str(json_data['request_id']) + ' and fragment id: ' + str(
+                        json_data['fr_index']))
 
 
             elif  json_data['op']=='https_receive_fr_count':
-                request =self.requests[json_data['request_id']]['request']
+                # თუ უკვე რესპონსი გვაქვს ამ რექვესთის,მეორედ რომ აღარ ამოვიღოთ
+                if len(self.requests[json_data['request_id']]['responce']) <= 0:
+                 request =self.requests[json_data['request_id']]['request']
 
                 if json_data['request_id'] in self.https_sesions.keys():
                     sesion = self.https_sesions[json_data['request_id']]
-                    self.requests[json_data['request_id']]['responce'] += self.get_responce(request, sesion=sesion,https=True)
-                    del(self.requests[json_data['request_id']]['request'])
+                    if len(self.requests[json_data['request_id']]['responce']) <= 0:
+                        self.requests[json_data['request_id']]['responce'] += self.get_responce(request, sesion=sesion,https=True)
+                        del(self.requests[json_data['request_id']]['request'])
 
 
                 else:
