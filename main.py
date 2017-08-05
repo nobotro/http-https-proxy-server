@@ -13,6 +13,7 @@ import textwrap
 import email
 import pprint
 from io import StringIO
+import gzip
 class server_manager():
 
 
@@ -181,20 +182,11 @@ class server_manager():
                         sock.settimeout(None)
                         sock.close()
                         break
-
+                data=gzip.compress(data,compresslevel=6)
                 info = [data[i:i + 65507] for i in range(0, len(data), 65507)]
                 return info
 
-
-
-
-
-
-
-
-
-
-
+        data = gzip.compress(data, compresslevel=6)
         info = [data[i:i + 65507] for i in range(0, len(data), 65507)]
         return info
 
