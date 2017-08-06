@@ -20,6 +20,17 @@ class server_manager():
     requests={}
     https_sesions ={}
 
+    requests_counter = 0
+    thread_lock = threading.Lock()
+
+    def get_next_request_count(self, *args):
+
+        self.thread_lock.acquire()
+        res = self.requests_counter + 1
+        self.requests_counter = res
+        self.thread_lock.release()
+        return res
+
     def start_server(self):
 
         sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -202,6 +213,7 @@ class server_manager():
 
             data=data.decode()
             json_data=json.loads(data)
+
             # print(json_data)
 
 
@@ -213,16 +225,22 @@ class server_manager():
 
             if json_data['op']=='send_req_data':
 
-                print("received request with id: "+str(json_data['request_id']))
-                conn.sendto('ack'.encode(),addr)
+                if 'request_id' not in json_data.keys():
+                     request_id=str(self.get_next_request_count())
+                else:
+                    request_id=json_data['request_id']
+                print("received request with id: "+str(request_id))
+                resp=json.dumps({'request_id':request_id}, ensure_ascii=False).encode()
+
+                conn.sendto(resp,addr)
 
 
                 #veb რექუესთების ლისტში,id-ის მიხედვით ვაგდებ ამ რექვესთს
 
 
 
-                self.requests[json_data['request_id']]={'request':json_data['data']}
-                self.requests[json_data['request_id']]['responce']=[]
+                self.requests[request_id]={'request':json_data['data']}
+                self.requests[request_id]['responce']=[]
 
 
             #ეს ბრძანება მოდის როცა კლიენტი გვეკითხება თუ ვებ respon-სის რამდენი ფრაგმენტს ელოდოს ჩვენგან
@@ -238,7 +256,7 @@ class server_manager():
                     request = self.requests[json_data['request_id']]['request']
 
                     del(self.requests[json_data['request_id']]['request'])
-
+                    self.requests[json_data['request_id']]['responce']=[]
                     self.requests[json_data['request_id']]['responce'] += self.get_responce(request)
 
                 print("received url content with id: " + str(json_data['request_id']))
@@ -255,29 +273,37 @@ class server_manager():
 
 
                 if 'action' in json_data.keys():
+                    pass
+                    #დასაფიქსია
                     self.requests[json_data['request_id']]['responce'][json_data['fr_index']]=''
+
                 else:
 
                     print("fragment request with id: " + str(json_data['request_id'])+' and fragment id: '+str(json_data['fr_index']))
                     resp_fr_data=self.requests[json_data['request_id']]['responce'][json_data['fr_index']]
 
 
-
-                    conn.sendto(resp_fr_data,addr)
+                    try:
+                        conn.sendto(resp_fr_data,addr)
+                    except:
+                        print('+++++++is erori '+str(json_data))
                     print("gaigzavna: " + str(json_data['request_id']) + ' and fragment id: ' + str(
                         json_data['fr_index']))
 
 
             elif  json_data['op']=='https_receive_fr_count':
-                # თუ უკვე რესპონსი გვაქვს ამ რექვესთის,მეორედ რომ აღარ ამოვიღოთ
-                if len(self.requests[json_data['request_id']]['responce']) <= 0:
-                 request =self.requests[json_data['request_id']]['request']
+                try:
+                    request =self.requests[json_data['request_id']]['request']
+                except:
+
+                    print('((((((((((((((((((=erori da rame '+str(json_data))
+                    print(self.requests)
 
                 if json_data['request_id'] in self.https_sesions.keys():
                     sesion = self.https_sesions[json_data['request_id']]
-                    if len(self.requests[json_data['request_id']]['responce']) <= 0:
-                        self.requests[json_data['request_id']]['responce'] += self.get_responce(request, sesion=sesion,https=True)
-                        del(self.requests[json_data['request_id']]['request'])
+                    self.requests[json_data['request_id']]['responce']=[]
+                    self.requests[json_data['request_id']]['responce'] += self.get_responce(request, sesion=sesion,https=True)
+
 
 
                 else:
