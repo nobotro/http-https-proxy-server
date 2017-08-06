@@ -14,6 +14,8 @@ import email
 import pprint
 from io import StringIO
 import gzip
+import logging
+logging.basicConfig(filename='C:\\Users\\Administrator\\PycharmProjects\\geocell_proxy_server\logs\\server.log',format='%(asctime)s %(message)s',level=logging.DEBUG)
 class server_manager():
 
 
@@ -69,8 +71,10 @@ class server_manager():
 
             try:
                 _, headers =requset.split('\r\n', 1)
-            except:
-                pass
+            except Exception as e:
+                logging.exception('message')
+                return
+
                #print('sgsg erori')
                 #print(requset)
                 #print(sesion)
@@ -102,11 +106,10 @@ class server_manager():
                 server_address = (host,port)
                 #print(server_address)
                 try:
-                 sock.connect(server_address)header
-                except:
-
-                    pass
-
+                 sock.connect(server_address)
+                except Exception as e:
+                    logging.exception('message')
+                    return
                 sock.sendall(requset.encode())
 
 
@@ -139,8 +142,8 @@ class server_manager():
                 sock =''
                 try:
                     _, headers = requset.split('\r\n', 1)
-                except:
-
+                except Exception as e:
+                    logging.exception('message')
                     return
                     #print('sgsg erori')
 
@@ -169,6 +172,7 @@ class server_manager():
             else:
                 #print('ses'+str(sesion))
                 sock =sesion
+
                 requset=base64.decodebytes(requset.encode())
 
 
@@ -193,8 +197,16 @@ class server_manager():
                         sock.settimeout(None)
                         break
                     except:
-                        sock.settimeout(None)
-                        sock.close()
+                        if sock:
+                            try:
+                                sock.settimeout(None)
+                                sock.close()
+                            except Exception as e:
+
+                                logging.exception("message")
+                                logging.info('tipi'+str(sock)+' :'+type(sock))
+                                print('tipi'+str(sock)+' :'+type(sock))
+
                         break
                 data=gzip.compress(data,compresslevel=6)
                 info = [data[i:i + 65507] for i in range(0, len(data), 65507)]
@@ -233,6 +245,7 @@ class server_manager():
                 else:
                     request_id=json_data['request_id']
                 print("received request with id: "+str(request_id))
+                # logging.info("received request with id: "+str(request_id))
                 resp=json.dumps({'request_id':request_id}, ensure_ascii=False).encode()
 
                 conn.sendto(resp,addr)
@@ -260,12 +273,18 @@ class server_manager():
 
                     del(self.requests[json_data['request_id']]['request'])
                     self.requests[json_data['request_id']]['responce']=[]
-                    self.requests[json_data['request_id']]['responce'] += self.get_responce(request)
+                    res=self.get_responce(request)
+                    if res:
+                        self.requests[json_data['request_id']]['responce'] += res
+                    else:
+                        return
 
                 print("received url content with id: " + str(json_data['request_id']))
+                # logging.info("received url content with id: " + str(json_data['request_id']))
 
                 fragment_list=self.requests[json_data['request_id']]['responce']
                 print("received url content with id: " + str(json_data['request_id'])+ ' fragment_count:' +str(len(fragment_list)))
+                # logging.info("received url content with id: " + str(json_data['request_id'])+ ' fragment_count:' +str(len(fragment_list)))
                 # print('receive_fragment_count:' +str(len(fragment_list)))
 
                 conn.sendto(str(len(fragment_list)).encode(),addr)
@@ -283,35 +302,45 @@ class server_manager():
                 else:
 
                     print("fragment request with id: " + str(json_data['request_id'])+' and fragment id: '+str(json_data['fr_index']))
+                    # logging.info("fragment request with id: " + str(json_data['request_id'])+' and fragment id: '+str(json_data['fr_index']))
                     resp_fr_data=self.requests[json_data['request_id']]['responce'][json_data['fr_index']]
 
 
                     try:
                         conn.sendto(resp_fr_data,addr)
-                    except:
+                    except Exception as e:
+                        logging.exception('message')
                         print('+++++++is erori '+str(json_data))
-                    print("gaigzavna: " + str(json_data['request_id']) + ' and fragment id: ' + str(
-                        json_data['fr_index']))
+                    print("gaigzavna: " + str(json_data['request_id']) + ' and fragment id: ' + str(json_data['fr_index']))
+                    # logging.info("gaigzavna: " + str(json_data['request_id']) + ' and fragment id: ' + str(json_data['fr_index']))
 
 
             elif  json_data['op']=='https_receive_fr_count':
                 try:
                     request =self.requests[json_data['request_id']]['request']
-                except:
+                except Exception as e:
 
                     print('((((((((((((((((((=erori da rame '+str(json_data))
-                    print(self.requests)
+                    logging.exception('message')
+
 
                 if json_data['request_id'] in self.https_sesions.keys():
                     sesion = self.https_sesions[json_data['request_id']]
                     self.requests[json_data['request_id']]['responce']=[]
-                    self.requests[json_data['request_id']]['responce'] += self.get_responce(request, sesion=sesion,https=True)
+                    res=self.get_responce(request, sesion=sesion,https=True)
+                    if res:
+                     self.requests[json_data['request_id']]['responce'] += res
+                    else:
+                        return
 
 
 
                 else:
                     sesion = self.get_responce(request, sesion=None,https=True)
-                    self.https_sesions[json_data['request_id']] = sesion
+                    if sesion:
+                      self.https_sesions[json_data['request_id']] = sesion
+                    else:
+                        return
 
                 fragment_list = self.requests[json_data['request_id']]['responce']
                 # print('receive_fragment_count:' + str(len(fragment_list)))
@@ -322,6 +351,7 @@ class server_manager():
 
 def server():
     a=server_manager()
+
     a.start_server()
 if __name__ == "__main__":
     server()
