@@ -35,8 +35,10 @@ class server_manager():
 
         sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
-        sock.bind(('37.187.55.53', 1327))
-
+        sock.bind((settings.remote_server_ip, settings.remote_server_port))
+        print('[*] start server at ip {} and port {}'.format(settings.remote_server_ip,str(settings.remote_server_port)))
+        print('[*] protocol http/https')
+        print('[*] socket protocol udp')
 
 
 
