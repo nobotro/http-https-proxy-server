@@ -102,7 +102,7 @@ class server_manager():
                 server_address = (host,port)
                 #print(server_address)
                 try:
-                 sock.connect(server_address)
+                 sock.connect(server_address)header
                 except:
 
                     pass
@@ -140,7 +140,8 @@ class server_manager():
                 try:
                     _, headers = requset.split('\r\n', 1)
                 except:
-                    pass
+
+                    return
                     #print('sgsg erori')
 
                     # construct a message from the request string
