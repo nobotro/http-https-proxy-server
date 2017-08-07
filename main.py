@@ -204,16 +204,16 @@ class server_manager():
                             except Exception as e:
 
                                 logging.exception("message")
-                                logging.info('tipi'+str(sock)+' :'+type(sock))
-                                print('tipi'+str(sock)+' :'+type(sock))
+                                logging.info('tipi'+str(sock)+' :'+str(type(sock)))
+                                print('tipi'+str(sock)+' :'+str(type(sock)))
 
                         break
                 data=gzip.compress(data,compresslevel=6)
-                info = [data[i:i + 65507] for i in range(0, len(data), 65507)]
+                info = [data[i:i + settings.max_fragment_size] for i in range(0, len(data), settings.max_fragment_size)]
                 return info
 
         data = gzip.compress(data, compresslevel=6)
-        info = [data[i:i + 65507] for i in range(0, len(data), 65507)]
+        info = [data[i:i + settings.max_fragment_size] for i in range(0, len(data), settings.max_fragment_size)]
         return info
 
 
