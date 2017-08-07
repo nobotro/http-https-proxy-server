@@ -35,18 +35,19 @@ class server_manager():
 
     def start_server(self):
 
-        sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
-        sock.bind((settings.remote_server_ip, settings.remote_server_port))
         print('[*] start proxy server at ip {} and port {}'.format(settings.remote_server_ip,str(settings.remote_server_port)))
         print('[*] protocol http/https')
         print('[*] socket protocol udp')
+        sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
+        sock.bind((settings.remote_server_ip, settings.remote_server_port))
 
 
 
         while True:
             try:
+
                 data, addr = sock.recvfrom(65507)
 
                 thr = threading.Thread(target= self.handle, args=(data,addr,sock))
