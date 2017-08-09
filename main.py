@@ -304,15 +304,20 @@ class server_manager():
 
                     print("fragment request with id: " + str(json_data['request_id'])+' and fragment id: '+str(json_data['fr_index']))
                     # logging.info("fragment request with id: " + str(json_data['request_id'])+' and fragment id: '+str(json_data['fr_index']))
-                    resp_fr_data=self.requests[json_data['request_id']]['responce'][json_data['fr_index']]
+
+
 
 
                     try:
-                        conn.sendto(resp_fr_data,addr)
+                        resp_fr_data = self.requests[json_data['request_id']]['responce'][json_data['fr_index']]
+                        if resp_fr_data:
+
+                         conn.sendto(resp_fr_data,addr)
+
                     except Exception as e:
                         logging.exception('message')
                         print('+++++++is erori '+str(json_data))
-                    print("gaigzavna: " + str(json_data['request_id']) + ' and fragment id: ' + str(json_data['fr_index']))
+                    print("gaigzavna: " + str(json_data['request_id']) + ' and fragment id: ' + str(json_data['fr_index'])+' zoma: '+str(len(resp_fr_data)))
                     # logging.info("gaigzavna: " + str(json_data['request_id']) + ' and fragment id: ' + str(json_data['fr_index']))
 
 
