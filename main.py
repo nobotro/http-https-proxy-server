@@ -15,7 +15,8 @@ import pprint
 from io import StringIO
 import gzip
 import logging
-logging.basicConfig(filename='C:\\Users\\Administrator\\PycharmProjects\\geocell_proxy_server\logs\\server.log',format='%(asctime)s %(message)s',level=logging.DEBUG)
+#C:\\Users\\Administrator\\PycharmProjects\\geocell_proxy_server\logs\\
+logging.basicConfig(filename='server.log',format='%(asctime)s %(message)s',level=logging.DEBUG)
 class server_manager():
 
 
