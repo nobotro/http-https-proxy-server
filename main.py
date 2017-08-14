@@ -1,4 +1,5 @@
 import base64
+import datetime
 import json
 import pickle
 import socket
@@ -40,6 +41,8 @@ class server_manager():
         print('[*] start proxy server at ip {} and port {}'.format(settings.remote_server_ip,str(settings.remote_server_port)))
         print('[*] protocol http/https')
         print('[*] socket protocol udp')
+        print('[*] time:'+str(datetime.datetime.now()))
+
         sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
         sock.bind((settings.remote_server_ip, settings.remote_server_port))
