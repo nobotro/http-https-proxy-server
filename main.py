@@ -314,7 +314,7 @@ class server_manager():
                     # print('receive_fragment_count:' + str(len(fragment_list)))
                     resp = json.dumps({'request_id': request_id, 'fr_count': str(len(fragment_list))}, ensure_ascii=False).encode()
 
-                    conn.sendto(res, addr)
+                    conn.sendto(resp, addr)
 
                 #veb რექუესთების ლისტში,id-ის მიხედვით ვაგდებ ამ რექვესთს
 
