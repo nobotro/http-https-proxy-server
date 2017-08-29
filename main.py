@@ -251,17 +251,76 @@ class server_manager():
                     request_id=json_data['request_id']
                 print("received request with id: "+str(request_id))
                 # logging.info("received request with id: "+str(request_id))
-                resp=json.dumps({'request_id':request_id}, ensure_ascii=False).encode()
 
-                conn.sendto(resp,addr)
 
+
+
+                if json_data['https']==False:
+                    
+                
+
+                    request = json_data['data']
+    
+                    
+                    self.requests[json_data['request_id']]['responce']=[]
+                    res=self.get_responce(request)
+                    if res:
+                        self.requests[json_data['request_id']]['responce'] += res
+                    else:
+                        return
+                    
+                    
+                    
+                    
+                    
+                    resp=json.dumps({'request_id':request_id,'fr_count':len(res)}, ensure_ascii=False).encode()
+    
+                    conn.sendto(resp,addr)
+                else:
+                    
+                    
+                    
+                    
+                    
+                    request = json_data['data']
+                    if request == 'already_received':
+                        return
+                    else:
+                        self.requests[json_data['request_id']]['request'] = 'already_received'
+
+                
+        
+           
+    
+                    if json_data['request_id'] in self.https_sesions.keys():
+                        sesion = self.https_sesions[json_data['request_id']]
+                        self.requests[json_data['request_id']]['responce'] = []
+                        res = self.get_responce(request, sesion=sesion, https=True)
+                        if res:
+                            self.requests[json_data['request_id']]['responce'] += res
+                        else:
+                            return
+    
+    
+    
+                    else:
+                        sesion = self.get_responce(request, sesion=None, https=True)
+                        if sesion:
+                            self.https_sesions[json_data['request_id']] = sesion
+                        else:
+                            return
+    
+                    fragment_list = self.requests[json_data['request_id']]['responce']
+                    # print('receive_fragment_count:' + str(len(fragment_list)))
+                    resp = json.dumps({'request_id': request_id, 'fr_count': str(len(fragment_list))}, ensure_ascii=False).encode()
+
+                    conn.sendto(str(len(fragment_list)).encode(), addr)
 
                 #veb რექუესთების ლისტში,id-ის მიხედვით ვაგდებ ამ რექვესთს
 
 
 
-                self.requests[request_id]={'request':json_data['data']}
-                self.requests[request_id]['responce']=[]
+                
 
 
             #ეს ბრძანება მოდის როცა კლიენტი გვეკითხება თუ ვებ respon-სის რამდენი ფრაგმენტს ელოდოს ჩვენგან
