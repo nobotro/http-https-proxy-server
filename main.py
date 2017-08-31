@@ -67,7 +67,7 @@ class server_manager():
 
 #ბინარი სტრინგი მოდის თავიდან და არა რექვესთი
 
-    def get_responce(self,requset,sesion=None,https=False):
+    def get_responce(self,requset,sesion=None,https=False,request_id=None):
 
         data = b''
         sock=''
@@ -193,6 +193,7 @@ class server_manager():
                             data += t_data
                         else:
                             sock.close()
+                            del(self.https_sesions[request_id])
 
 
 
@@ -300,14 +301,11 @@ class server_manager():
 
                 if 'action' in json_data.keys():
                     
+                    
                     #დასაფიქსია
                     self.requests[json_data['request_id']]['responce'][json_data['fr_index']]=''
-                    if json_data['request_id'] in self.https_sesions:
-                        try:
-                          self.https_sesions[json_data['request_id']].close()
-                          del( self.https_sesions[json_data['request_id']])
-                        except:
-                            logging.exception('message')
+         
+                    
                 else:
 
                     print("fragment request with id: " + str(json_data['request_id'])+' and fragment id: '+str(json_data['fr_index']))
@@ -346,7 +344,7 @@ class server_manager():
                 if json_data['request_id'] in self.https_sesions.keys():
                     sesion = self.https_sesions[json_data['request_id']]
                     self.requests[json_data['request_id']]['responce']=[]
-                    res=self.get_responce(request, sesion=sesion,https=True)
+                    res=self.get_responce(request, sesion=sesion,https=True,request_id=json_data['request_id'])
                     if res:
                      self.requests[json_data['request_id']]['responce'] += res
                     else:
