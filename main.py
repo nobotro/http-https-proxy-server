@@ -180,11 +180,9 @@ class server_manager():
 
                 requset=base64.decodebytes(requset.encode())
 
-
-
-
+                sock.settimeout(settings.global_timeout)
                 sock.sendall(requset)
-
+                sock.settimeout(None)
                 while True:
                     try:
 
@@ -207,7 +205,8 @@ class server_manager():
                                 sock.settimeout(None)
                                 sock.close()
                             except Exception as e:
-
+    
+                                sock.close()
                                 logging.exception("message")
                                 logging.info('tipi'+str(sock)+' :'+str(type(sock)))
                                 print('tipi'+str(sock)+' :'+str(type(sock)))
@@ -300,10 +299,15 @@ class server_manager():
 
 
                 if 'action' in json_data.keys():
-                    pass
+                    
                     #დასაფიქსია
                     self.requests[json_data['request_id']]['responce'][json_data['fr_index']]=''
-
+                    if json_data['request_id'] in self.https_sesions:
+                        try:
+                          self.https_sesions[json_data['request_id']].close()
+                          del( self.https_sesions[json_data['request_id']])
+                        except:
+                            logging.exception('message')
                 else:
 
                     print("fragment request with id: " + str(json_data['request_id'])+' and fragment id: '+str(json_data['fr_index']))
