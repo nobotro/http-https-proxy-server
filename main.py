@@ -355,7 +355,11 @@ class server_manager():
                 else:
                     sesion = self.get_responce(request, sesion=None,https=True)
                     if sesion:
-                      self.https_sesions[json_data['request_id']] = sesion
+                        if json_data['request_id'] in self.https_sesions:
+                            self.https_sesions[json_data['request_id']].close()
+                            del(self.https_sesions[json_data['request_id']])
+                            
+                        self.https_sesions[json_data['request_id']] = sesion
                     else:
                         return
 
