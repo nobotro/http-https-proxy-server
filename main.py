@@ -366,6 +366,10 @@ class server_manager():
                 fragment_list = self.requests[json_data['request_id']]['responce']
                 # print('receive_fragment_count:' + str(len(fragment_list)))
                 conn.sendto(str(len(fragment_list)).encode(), addr)
+            
+            elif json_data['op'] == 'clean':
+                del(self.requests[json_data['request_id']])
+                self.https_sesions[json_data['request_id']].close()
 
 
 
