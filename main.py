@@ -147,32 +147,33 @@ class server_manager():
                 sock =''
                 try:
                     _, headers = requset.split('\r\n', 1)
-                except Exception as e:
-                    logging.exception('message')
-                    return
+               
                     #print('sgsg erori')
 
                     # construct a message from the request string
-                message = email.message_from_file(StringIO(headers))
-
-                # construct a dictionary containing the headers
-                headers = dict(message.items())
-                headers['method'], headers['path'], headers['http-version'] = _.split()
-
-
-                host = headers['path']
-                lr = host.split(':')
-                host = lr[0]
-                if len(lr) == 2:
-                    port = int(lr[1])
-
-                sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-
-                
-                server_address = (host, port)
-                sock.settimeout(settings.global_timeout)
-                sock.connect(server_address)
-                sock.settimeout(None)
+                    message = email.message_from_file(StringIO(headers))
+    
+                    # construct a dictionary containing the headers
+                    headers = dict(message.items())
+                    headers['method'], headers['path'], headers['http-version'] = _.split()
+    
+    
+                    host = headers['path']
+                    lr = host.split(':')
+                    host = lr[0]
+                    if len(lr) == 2:
+                        port = int(lr[1])
+    
+                    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    
+                    
+                    server_address = (host, port)
+                    sock.settimeout(settings.global_timeout)
+                    sock.connect(server_address)
+                    sock.settimeout(None)
+                except Exception as e:
+                    logging.exception('message')
+                    return sock
 
                 return sock
             else:
