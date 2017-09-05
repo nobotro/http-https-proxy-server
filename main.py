@@ -91,51 +91,51 @@ class server_manager():
             headers = dict(message.items())
             headers['method'], headers['path'], headers['http-version'] = _.split()
 
-            if headers['method']!='CONNECT':
+           
 
-                url= urlparse(headers['path'])
+            url= urlparse(headers['path'])
 
-                requset=requset.replace(headers['path'],headers['path'].replace(url.scheme+'://'+url.netloc,''))
-                host=headers['Host']
-                lr=host.split(':')
-                host=lr[0]
-                if len(lr)==2:
-                    port=int(lr[1])
+            requset=requset.replace(headers['path'],headers['path'].replace(url.scheme+'://'+url.netloc,''))
+            host=headers['Host']
+            lr=host.split(':')
+            host=lr[0]
+            if len(lr)==2:
+                port=int(lr[1])
 
-                else:port=80
+            else:port=80
 
 
-                sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
-                # Connect the socket to the port where the server is listening
-                server_address = (host,port)
-                #print(server_address)
+            # Connect the socket to the port where the server is listening
+            server_address = (host,port)
+            #print(server_address)
+            try:
+             sock.connect(server_address)
+            except Exception as e:
+                logging.exception('message')
+                return
+            sock.sendall(requset.encode())
+
+
+            while True:
+                temp=None
                 try:
-                 sock.connect(server_address)
-                except Exception as e:
-                    logging.exception('message')
-                    return
-                sock.sendall(requset.encode())
+                    sock.settimeout(settings.global_timeout)
+                    temp = sock.recv(67500)
+                    sock.settimeout(None)
+                except:
+                    sock.settimeout(None)
+                    sock.close()
+
+                    break
 
 
-                while True:
-                    temp=None
-                    try:
-                        # sock.settimeout(settings.global_timeout)
-                        temp = sock.recv(67500)
-                        # sock.settimeout(None)
-                    except:
-                        # sock.settimeout(None)
-                        sock.close()
-
-                        break
-
-
-                    if temp:
-                        data+=temp
-                    else:
-                        sock.close()
-                        break
+                if temp:
+                    data+=temp
+                else:
+                    sock.close()
+                    break
 
 
 
@@ -168,10 +168,11 @@ class server_manager():
 
                 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
-                # Connect the socket to the port where the server is listening
+                
                 server_address = (host, port)
+                sock.settimeout(settings.global_timeout)
                 sock.connect(server_address)
-
+                sock.settimeout(None)
 
                 return sock
             else:
@@ -179,16 +180,19 @@ class server_manager():
                 sock =sesion
 
                 requset=base64.decodebytes(requset.encode())
-
-                # sock.settimeout(settings.global_timeout)
-                sock.sendall(requset)
-                # sock.settimeout(None)
+                try:
+                    sock.settimeout(settings.global_timeout)
+                    sock.sendall(requset)
+                    sock.settimeout(None)
+                except:
+                    sock.settimeout(None)
+                    return None
                 while True:
                     try:
 
-                        # sock.settimeout(settings.global_timeout)
+                        sock.settimeout(settings.global_timeout)
                         t_data = sock.recv(65000)
-                        # sock.settimeout(None)
+                        sock.settimeout(None)
                         if t_data:
                             data += t_data
                         else:
@@ -198,12 +202,12 @@ class server_manager():
 
 
                     except socket.timeout:
-                        # sock.settimeout(None)
+                        sock.settimeout(None)
                         break
                     except:
                         if sock:
                             try:
-                                # sock.settimeout(None)
+                                sock.settimeout(None)
                                 sock.close()
                             except Exception as e:
     
