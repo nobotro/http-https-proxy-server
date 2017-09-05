@@ -106,7 +106,7 @@ class server_manager():
 
 
                 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-
+                sock.setblocking(False)
                 # Connect the socket to the port where the server is listening
                 server_address = (host,port)
                 #print(server_address)
@@ -121,11 +121,11 @@ class server_manager():
                 while True:
                     temp=None
                     try:
-                        sock.settimeout(settings.global_timeout)
+                        # sock.settimeout(settings.global_timeout)
                         temp = sock.recv(67500)
-                        sock.settimeout(None)
+                        # sock.settimeout(None)
                     except:
-                        sock.settimeout(None)
+                        # sock.settimeout(None)
                         sock.close()
 
                         break
@@ -180,15 +180,15 @@ class server_manager():
 
                 requset=base64.decodebytes(requset.encode())
 
-                sock.settimeout(settings.global_timeout)
+                # sock.settimeout(settings.global_timeout)
                 sock.sendall(requset)
-                sock.settimeout(None)
+                # sock.settimeout(None)
                 while True:
                     try:
 
-                        sock.settimeout(settings.global_timeout)
+                        # sock.settimeout(settings.global_timeout)
                         t_data = sock.recv(65000)
-                        sock.settimeout(None)
+                        # sock.settimeout(None)
                         if t_data:
                             data += t_data
                         else:
@@ -198,12 +198,12 @@ class server_manager():
 
 
                     except socket.timeout:
-                        sock.settimeout(None)
+                        # sock.settimeout(None)
                         break
                     except:
                         if sock:
                             try:
-                                sock.settimeout(None)
+                                # sock.settimeout(None)
                                 sock.close()
                             except Exception as e:
     
