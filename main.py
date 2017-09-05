@@ -106,7 +106,7 @@ class server_manager():
 
 
                 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                sock.setblocking(False)
+
                 # Connect the socket to the port where the server is listening
                 server_address = (host,port)
                 #print(server_address)
