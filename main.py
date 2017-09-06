@@ -71,160 +71,171 @@ class server_manager():
 
         data = b''
         sock=''
-
-        if not https:
-
-            try:
-                _, headers =requset.split('\r\n', 1)
-            except Exception as e:
-                logging.exception('message')
-                return
-
-               #print('sgsg erori')
-                #print(requset)
-                #print(sesion)
-
-            # construct a message from the request string
-            message = email.message_from_file(StringIO(headers))
-
-            # construct a dictionary containing the headers
-            headers = dict(message.items())
-            headers['method'], headers['path'], headers['http-version'] = _.split()
-
-           
-
-            url= urlparse(headers['path'])
-
-            requset=requset.replace(headers['path'],headers['path'].replace(url.scheme+'://'+url.netloc,''))
-            host=headers['Host']
-            lr=host.split(':')
-            host=lr[0]
-            if len(lr)==2:
-                port=int(lr[1])
-
-            else:port=80
-
-
-            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-
-            # Connect the socket to the port where the server is listening
-            server_address = (host,port)
-            #print(server_address)
-            try:
-             sock.connect(server_address)
-            except Exception as e:
-                logging.exception('message')
-                return
-            sock.sendall(requset.encode())
-
-
-            while True:
-                temp=None
+        try:
+            if not https:
+    
                 try:
-                    sock.settimeout(settings.global_timeout)
-                    temp = sock.recv(67500)
-                    sock.settimeout(None)
-                except:
-                    sock.settimeout(None)
-                    sock.close()
-
-                    break
-
-
-                if temp:
-                    data+=temp
-                else:
-                    sock.close()
-                    break
-
-
-
-
-        else:
-
-
-            if not sesion:
-                sock =''
-                try:
-                    _, headers = requset.split('\r\n', 1)
-               
-                    #print('sgsg erori')
-
-                    # construct a message from the request string
-                    message = email.message_from_file(StringIO(headers))
-    
-                    # construct a dictionary containing the headers
-                    headers = dict(message.items())
-                    headers['method'], headers['path'], headers['http-version'] = _.split()
-    
-    
-                    host = headers['path']
-                    lr = host.split(':')
-                    host = lr[0]
-                    if len(lr) == 2:
-                        port = int(lr[1])
-    
-                    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    
-                    
-                    server_address = (host, port)
-                    sock.settimeout(settings.global_timeout)
-                    sock.connect(server_address)
-                    sock.settimeout(None)
+                    _, headers =requset.split('\r\n', 1)
                 except Exception as e:
                     logging.exception('message')
-                    return sock
-
-                return sock
-            else:
-                #print('ses'+str(sesion))
-                sock =sesion
-
-                requset=base64.decodebytes(requset.encode())
-                try:
-                    sock.settimeout(settings.global_timeout)
-                    sock.sendall(requset)
-                    sock.settimeout(None)
-                except:
-                    sock.settimeout(None)
-                    return None
-                while True:
-                    try:
-
-                        sock.settimeout(settings.global_timeout)
-                        t_data = sock.recv(65000)
-                        sock.settimeout(None)
-                        if t_data:
-                            data += t_data
-                        else:
-                            sock.close()
-                            del(self.https_sesions[request_id])
-
-
-
-                    except socket.timeout:
-                        sock.settimeout(None)
-                        break
-                    except:
-                        if sock:
-                            try:
-                                sock.settimeout(None)
-                                sock.close()
-                            except Exception as e:
+                    return
     
-                                sock.close()
-                                logging.exception("message")
-                                logging.info('tipi'+str(sock)+' :'+str(type(sock)))
-                                print('tipi'+str(sock)+' :'+str(type(sock)))
-
+                   #print('sgsg erori')
+                    #print(requset)
+                    #print(sesion)
+    
+                # construct a message from the request string
+                message = email.message_from_file(StringIO(headers))
+    
+                # construct a dictionary containing the headers
+                headers = dict(message.items())
+                headers['method'], headers['path'], headers['http-version'] = _.split()
+    
+               
+    
+                url= urlparse(headers['path'])
+    
+                requset=requset.replace(headers['path'],headers['path'].replace(url.scheme+'://'+url.netloc,''))
+                host=headers['Host']
+                lr=host.split(':')
+                host=lr[0]
+                if len(lr)==2:
+                    port=int(lr[1])
+    
+                else:port=80
+    
+    
+                sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    
+                # Connect the socket to the port where the server is listening
+                server_address = (host,port)
+                #print(server_address)
+                try:
+                 sock.connect(server_address)
+                except Exception as e:
+                    logging.exception('message')
+                    return
+                sock.sendall(requset.encode())
+    
+                timeout=settings.global_timeout
+                while True:
+                    temp=None
+                    try:
+                        
+                        
+                        sock.settimeout(timeout)
+                        st = datetime.datetime.now()
+                        temp = sock.recv(2000)
+                        end = datetime.datetime.now()
+                        sock.settimeout(None)
+                        timeout=(end-st).total_seconds()+0.1
+                    except:
+                        sock.settimeout(None)
+                        sock.close()
+    
                         break
-                data=gzip.compress(data,compresslevel=6)
-                info = [data[i:i + settings.max_fragment_size] for i in range(0, len(data), settings.max_fragment_size)]
-                return info
-
-        data = gzip.compress(data, compresslevel=6)
-        info = [data[i:i + settings.max_fragment_size] for i in range(0, len(data), settings.max_fragment_size)]
-        return info
+    
+    
+                    if temp:
+                        data+=temp
+                    else:
+                        sock.close()
+                        break
+    
+    
+    
+    
+            else:
+    
+    
+                if not sesion:
+                    sock =''
+                    try:
+                        _, headers = requset.split('\r\n', 1)
+                   
+                        #print('sgsg erori')
+    
+                        # construct a message from the request string
+                        message = email.message_from_file(StringIO(headers))
+        
+                        # construct a dictionary containing the headers
+                        headers = dict(message.items())
+                        headers['method'], headers['path'], headers['http-version'] = _.split()
+        
+        
+                        host = headers['path']
+                        lr = host.split(':')
+                        host = lr[0]
+                        if len(lr) == 2:
+                            port = int(lr[1])
+        
+                        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        
+                        
+                        server_address = (host, port)
+                        sock.settimeout(settings.global_timeout)
+                        sock.connect(server_address)
+                        sock.settimeout(None)
+                    except Exception as e:
+                        logging.exception('message')
+                        return sock
+    
+                    return sock
+                else:
+                    #print('ses'+str(sesion))
+                    sock =sesion
+    
+                    requset=base64.decodebytes(requset.encode())
+                    try:
+                        sock.settimeout(settings.global_timeout)
+                        sock.sendall(requset)
+                        sock.settimeout(None)
+                    except:
+                        sock.settimeout(None)
+                        return None
+                    timeout = settings.global_timeout
+                    while True:
+                        try:
+    
+                            sock.settimeout(timeout)
+                            st = datetime.datetime.now()
+                            t_data = sock.recv(65000)
+                            end = datetime.datetime.now()
+                            sock.settimeout(None)
+                            timeout = (end - st).total_seconds() + 0.1
+                            if t_data:
+                                data += t_data
+                            else:
+                                sock.close()
+                                del(self.https_sesions[request_id])
+    
+    
+    
+                        except socket.timeout:
+                            sock.settimeout(None)
+                            break
+                        except:
+                            if sock:
+                                try:
+                                    sock.settimeout(None)
+                                    sock.close()
+                                except Exception as e:
+        
+                                    sock.close()
+                                    logging.exception("message")
+                                    logging.info('tipi'+str(sock)+' :'+str(type(sock)))
+                                    print('tipi'+str(sock)+' :'+str(type(sock)))
+    
+                            break
+                    data=gzip.compress(data,compresslevel=6)
+                    info = [data[i:i + settings.max_fragment_size] for i in range(0, len(data), settings.max_fragment_size)]
+                    return info
+    
+            data = gzip.compress(data, compresslevel=6)
+            info = [data[i:i + settings.max_fragment_size] for i in range(0, len(data), settings.max_fragment_size)]
+            return info
+        except:
+            return b''
 
 
 
@@ -318,7 +329,7 @@ class server_manager():
 
 
 
-
+                    resp_fr_data=''
                     try:
                         resp_fr_data = self.requests[json_data['request_id']]['responce'][json_data['fr_index']]
                         if resp_fr_data:
