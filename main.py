@@ -298,6 +298,7 @@ class server_manager():
                     if res:
                         self.requests[json_data['request_id']]['responce'] += res
                     else:
+                        conn.sendto(str('0').encode(), addr)
                         return
 
                 print("received url content with id: " + str(json_data['request_id']))
@@ -338,6 +339,7 @@ class server_manager():
 
                     except Exception as e:
                         logging.exception('message')
+                        conn.sendto(b'', addr)
                         print('+++++++is erori '+str(json_data))
                     print("gaigzavna: " + str(json_data['request_id']) + ' and fragment id: ' + str(json_data['fr_index'])+' zoma: '+str(len(resp_fr_data)))
                     # logging.info("gaigzavna: " + str(json_data['request_id']) + ' and fragment id: ' + str(json_data['fr_index']))
@@ -352,7 +354,7 @@ class server_manager():
                         self.requests[json_data['request_id']]['request']='already_received'
 
                 except Exception as e:
-
+                    conn.sendto('0'.encode(), addr)
                     print('((((((((((((((((((=erori da rame '+str(json_data))
                     logging.exception('message')
 
