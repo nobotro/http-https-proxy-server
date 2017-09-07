@@ -332,9 +332,9 @@ class server_manager():
                     resp_fr_data=''
                     try:
                         resp_fr_data = self.requests[json_data['request_id']]['responce'][json_data['fr_index']]
-                        if resp_fr_data:
+                       
 
-                         conn.sendto(resp_fr_data,addr)
+                        conn.sendto(resp_fr_data,addr)
 
                     except Exception as e:
                         logging.exception('message')
