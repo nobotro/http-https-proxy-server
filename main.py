@@ -364,6 +364,7 @@ class server_manager():
                     if res:
                      self.requests[json_data['request_id']]['responce'] += res
                     else:
+                        conn.sendto('0'.encode(), addr)
                         return
 
 
@@ -377,6 +378,7 @@ class server_manager():
                             
                         self.https_sesions[json_data['request_id']] = sesion
                     else:
+                        conn.sendto('0'.encode(), addr)
                         return
 
                 fragment_list = self.requests[json_data['request_id']]['responce']
