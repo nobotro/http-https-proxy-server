@@ -391,7 +391,7 @@ class server_manager():
                         self.https_sesions[json_data['request_id']] = sesion
                     else:
                         conn.sendto('0'.encode(), addr)
-                        sesion.close()
+                        
                         return
 
                
