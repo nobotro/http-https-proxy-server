@@ -214,7 +214,7 @@ class server_manager():
     
     
                         except socket.timeout:
-                            sock.close()
+                            
                             sock.settimeout(None)
                             break
                         except:
@@ -378,6 +378,7 @@ class server_manager():
                      conn.sendto(str(len(fragment_list)).encode(), addr)
                     else:
                         conn.sendto('0'.encode(), addr)
+                        sesion.close()
                         return
 
 
@@ -390,6 +391,7 @@ class server_manager():
                         self.https_sesions[json_data['request_id']] = sesion
                     else:
                         conn.sendto('0'.encode(), addr)
+                        sesion.close()
                         return
 
                
