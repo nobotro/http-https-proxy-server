@@ -367,6 +367,9 @@ class server_manager():
                     res=self.get_responce(request, sesion=sesion,https=True,request_id=json_data['request_id'])
                     if res:
                      self.requests[json_data['request_id']]['responce'] += res
+                     fragment_list = self.requests[json_data['request_id']]['responce']
+                     # print('receive_fragment_count:' + str(len(fragment_list)))
+                     conn.sendto(str(len(fragment_list)).encode(), addr)
                     else:
                         conn.sendto('0'.encode(), addr)
                         return
@@ -376,18 +379,14 @@ class server_manager():
                 else:
                     sesion = self.get_responce(request, sesion=None,https=True)
                     if sesion:
-                        if json_data['request_id'] in self.https_sesions:
-                            self.https_sesions[json_data['request_id']].close()
-                            del(self.https_sesions[json_data['request_id']])
+                        
                             
                         self.https_sesions[json_data['request_id']] = sesion
                     else:
                         conn.sendto('0'.encode(), addr)
                         return
 
-                fragment_list = self.requests[json_data['request_id']]['responce']
-                # print('receive_fragment_count:' + str(len(fragment_list)))
-                conn.sendto(str(len(fragment_list)).encode(), addr)
+               
             
             elif json_data['op'] == 'clean':
                 if json_data['request_id'] in self.requests:
