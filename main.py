@@ -179,7 +179,7 @@ class server_manager():
                     except Exception as e:
                         sock.close()
                         logging.exception('message')
-                        return sock
+                        return ''
     
                     return sock
                 else:
@@ -214,6 +214,7 @@ class server_manager():
     
     
                         except socket.timeout:
+                            sock.close()
                             sock.settimeout(None)
                             break
                         except:
