@@ -193,7 +193,7 @@ class server_manager():
                         sock.settimeout(None)
                     except:
                         sock.close()
-                      
+                        sock.settimeout(None)
                         return None
                     timeout = settings.global_timeout
                     while True:
@@ -214,7 +214,7 @@ class server_manager():
     
     
                         except socket.timeout:
-                            sock.close()
+                            sock.settimeout(None)
                             break
                         except:
                             if sock:
