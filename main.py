@@ -379,7 +379,7 @@ class server_manager():
                      # print('receive_fragment_count:' + str(len(fragment_list)))
                      conn.sendto(str(len(fragment_list)).encode(), addr)
                     else:
-                        conn.sendto('0'.encode(), addr)
+                        conn.sendto('-0'.encode(), addr)
                         sesion.close()
                         return
 
@@ -392,7 +392,7 @@ class server_manager():
                             
                         self.https_sesions[json_data['request_id']] = sesion
                     else:
-                        conn.sendto('0'.encode(), addr)
+                        conn.sendto('00'.encode(), addr)
                         
                         return
 
