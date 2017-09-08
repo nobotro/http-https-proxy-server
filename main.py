@@ -390,7 +390,7 @@ class server_manager():
                 conn.sendto(str(len(fragment_list)).encode(), addr)
             
             elif json_data['op'] == 'clean':
-                if json_data['request_id'] in self.requests[json_data['request_id']]:
+                if json_data['request_id'] in self.requests:
                       del(self.requests[json_data['request_id']])
                 if json_data['request_id'] in  self.https_sesions:
                     self.https_sesions[json_data['request_id']].close()
