@@ -356,6 +356,8 @@ class server_manager():
                 try:
                     request =self.requests[json_data['request_id']]['request']
                     if request=='already_received':
+                        fragment_list = len(self.requests[json_data['request_id']]['responce'])
+                        conn.sendto(str(fragment_list).encode(), addr)
                         return
                     else:
                         self.requests[json_data['request_id']]['request']='already_received'
