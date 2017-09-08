@@ -325,7 +325,7 @@ class server_manager():
                     try:
                       self.requests[json_data['request_id']]['responce'][json_data['fr_index']]=''
                     except:
-                        logging.exception('imena is erori----------------'+str(json_data))
+                        logging.error('imena is erori----------------'+str(json_data))
                         return
          
                     
