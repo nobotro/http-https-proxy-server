@@ -363,7 +363,7 @@ class server_manager():
                         self.requests[json_data['request_id']]['request']='already_received'
 
                 except Exception as e:
-                    conn.sendto('0'.encode(), addr)
+                   
                     print('((((((((((((((((((=erori da rame '+str(json_data))
                     logging.exception('message')
                     return
@@ -379,7 +379,7 @@ class server_manager():
                      # print('receive_fragment_count:' + str(len(fragment_list)))
                      conn.sendto(str(len(fragment_list)).encode(), addr)
                     else:
-                        conn.sendto('-0'.encode(), addr)
+                        conn.sendto('0'.encode(), addr)
                         sesion.close()
                         return
 
@@ -391,10 +391,7 @@ class server_manager():
                         
                             
                         self.https_sesions[json_data['request_id']] = sesion
-                     
-                        conn.sendto('00'.encode(), addr)
-                        
-                        return
+                   
 
                
             
