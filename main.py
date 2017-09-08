@@ -230,11 +230,11 @@ class server_manager():
                                     print('tipi'+str(sock)+' :'+str(type(sock)))
     
                             break
-                    data=gzip.compress(data,compresslevel=6)
+                    # data=gzip.compress(data,compresslevel=6)
                     info = [data[i:i + settings.max_fragment_size] for i in range(0, len(data), settings.max_fragment_size)]
                     return info
     
-            data = gzip.compress(data, compresslevel=6)
+            # data = gzip.compress(data, compresslevel=6)
             info = [data[i:i + settings.max_fragment_size] for i in range(0, len(data), settings.max_fragment_size)]
             return info
         except:
