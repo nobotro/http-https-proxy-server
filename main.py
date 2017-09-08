@@ -322,7 +322,11 @@ class server_manager():
                     
                     
                     #დასაფიქსია
-                    self.requests[json_data['request_id']]['responce'][json_data['fr_index']]=''
+                    try:
+                      self.requests[json_data['request_id']]['responce'][json_data['fr_index']]=''
+                    except:
+                        logging.exception('imena is erori----------------'+str(json_data))
+                        return
          
                     
                 else:
@@ -359,6 +363,7 @@ class server_manager():
                     conn.sendto('0'.encode(), addr)
                     print('((((((((((((((((((=erori da rame '+str(json_data))
                     logging.exception('message')
+                    return
 
 
                 if json_data['request_id'] in self.https_sesions.keys():
