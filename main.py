@@ -177,6 +177,7 @@ class server_manager():
                         sock.connect(server_address)
                         sock.settimeout(None)
                     except Exception as e:
+                        sock.close()
                         logging.exception('message')
                         return sock
     
@@ -191,7 +192,8 @@ class server_manager():
                         sock.sendall(requset)
                         sock.settimeout(None)
                     except:
-                        sock.settimeout(None)
+                        sock.close()
+                      
                         return None
                     timeout = settings.global_timeout
                     while True:
@@ -212,7 +214,7 @@ class server_manager():
     
     
                         except socket.timeout:
-                            sock.settimeout(None)
+                            sock.close()
                             break
                         except:
                             if sock:
