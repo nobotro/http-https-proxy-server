@@ -222,12 +222,12 @@ class server_manager():
                                     print('tipi' + str(sock) + ' :' + str(type(sock)))
                             
                             break
-                    # data=gzip.compress(data,compresslevel=6)
+                    data = gzip.compress(data, compresslevel=6)
                     info = [data[i:i + settings.max_fragment_size] for i in
                             range(0, len(data), settings.max_fragment_size)]
                     return info
             
-            # data = gzip.compress(data, compresslevel=6)
+            data = gzip.compress(data, compresslevel=6)
             info = [data[i:i + settings.max_fragment_size] for i in range(0, len(data), settings.max_fragment_size)]
             return info
         except:
@@ -336,9 +336,18 @@ class server_manager():
         
         
         elif json_data['op'] == 'https_receive_fr_count':
+            try:
+                request = self.requests[json_data['request_id']]['request']
+                if request == 'already_received':
+                    return
+                else:
+                    self.requests[json_data['request_id']]['request'] = 'already_received'
             
-            request = self.requests[json_data['request_id']]['request']
-            
+            except Exception as e:
+                conn.sendto('0'.encode(), addr)
+                print('((((((((((((((((((=erori da rame ' + str(json_data))
+                logging.exception('message')
+                return
             
             if json_data['request_id'] in self.https_sesions.keys():
                 sesion = self.https_sesions[json_data['request_id']]
@@ -350,7 +359,7 @@ class server_manager():
                     # print('receive_fragment_count:' + str(len(fragment_list)))
                     conn.sendto(str(len(fragment_list)).encode(), addr)
                 else:
-                    conn.sendto(b'', addr)
+                    conn.sendto('0'.encode(), addr)
                     sesion.close()
                     return
             
@@ -360,9 +369,12 @@ class server_manager():
                 sesion = self.get_responce(request, sesion=None, https=True)
                 if sesion:
                     
-                    # q
                     self.https_sesions[json_data['request_id']] = sesion
-        
+                else:
+                    conn.sendto('0'.encode(), addr)
+                    sesion.close()
+                    
+                    return
         
         
         
