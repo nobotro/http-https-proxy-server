@@ -407,12 +407,12 @@ class server_manager():
                     if sesion:
                         
                         
-                        if self.https_sesions[json_data['request_id']]:
-                            self.https_sesions[json_data['request_id']]['sesion'].close()
-                            del(self.https_sesions[json_data['request_id']])
-                            logging.exception('**************************************************')
-
-                            
+                        # if self.https_sesions[json_data['request_id']]:
+                        #     self.https_sesions[json_data['request_id']]['sesion'].close()
+                        #     del(self.https_sesions[json_data['request_id']])
+                        #     logging.exception('**************************************************')
+                        #
+                        #
                         self.https_sesions[json_data['request_id']] = {'sesion': sesion,
                                                                        'stamp': datetime.datetime.now()}
 
