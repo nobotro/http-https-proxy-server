@@ -395,17 +395,9 @@ class server_manager():
                     sesion = self.get_responce(request, sesion=None, https=True)
                     if sesion:
                         
+                        self.https_sesions[json_data['request_id']] ={'sesion': sesion,'stamp':datetime.datetime.now()}
                         
-                        if self.https_sesions[json_data['request_id']]:
-                            self.https_sesions[json_data['request_id']]['sesion'].close()
-                            del(self.https_sesions[json_data['request_id']])
-                            logging.exception('**************************************************')
-                            
-                            
-                        self.https_sesions[json_data['request_id']] = {'sesion': sesion,
-                                                                       'stamp': datetime.datetime.now()}
-
-
+                        
                     else:
                         conn.sendto('0'.encode(), addr)
                         
