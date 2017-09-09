@@ -339,12 +339,14 @@ class server_manager():
             try:
                 request = self.requests[json_data['request_id']]['request']
                 if request == 'already_received':
+                    fragment_list = len(self.requests[json_data['request_id']]['responce'])
+                    conn.sendto(str(fragment_list).encode(), addr)
                     return
                 else:
                     self.requests[json_data['request_id']]['request'] = 'already_received'
             
             except Exception as e:
-                conn.sendto('0'.encode(), addr)
+                
                 print('((((((((((((((((((=erori da rame ' + str(json_data))
                 logging.exception('message')
                 return
@@ -359,7 +361,7 @@ class server_manager():
                     # print('receive_fragment_count:' + str(len(fragment_list)))
                     conn.sendto(str(len(fragment_list)).encode(), addr)
                 else:
-                    conn.sendto('0'.encode(), addr)
+                    conn.sendto(b'', addr)
                     sesion.close()
                     return
             
@@ -369,11 +371,9 @@ class server_manager():
                 sesion = self.get_responce(request, sesion=None, https=True)
                 if sesion:
                     
+                    # q
                     self.https_sesions[json_data['request_id']] = sesion
-                else:
-                    conn.sendto('0'.encode(), addr)
-                    
-                    return
+        
         
         
         
