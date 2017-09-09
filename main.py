@@ -30,9 +30,10 @@ class server_manager():
     
     
     def clean(self):
-         
-            
+    
+            dell = []
             for i in self.https_sesions:
+               
                 if (datetime.datetime.now()-self.https_sesions[i]['stamp']).total_seconds()>settings.clean_time:
                     try:
                        
@@ -40,12 +41,18 @@ class server_manager():
                     except:pass
                     
                     try:
-                         del ( self.https_sesions[i])
+                         dell.append(i)
                     except:pass
                     
                     try:
                         del(self.requests[i])
                     except:pass
+            
+            for i in dell:
+                try:
+                    del(self.https_sesions[i])
+                except:pass
+                
     
     def get_next_request_count(self, *args):
         
