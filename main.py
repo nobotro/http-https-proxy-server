@@ -30,7 +30,7 @@ class server_manager():
     
     
     def clean(self):
-         
+        while True:
             for i in self.https_sesions:
                 if (datetime.datetime.now()-self.https_sesions[i]['stamp']).total_seconds()>settings.clean_time:
                     try:
