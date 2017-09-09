@@ -379,7 +379,7 @@ class server_manager():
                      # print('receive_fragment_count:' + str(len(fragment_list)))
                      conn.sendto(str(len(fragment_list)).encode(), addr)
                     else:
-                        conn.sendto('0'.encode(), addr)
+                        conn.sendto(b'', addr)
                         sesion.close()
                         return
 
