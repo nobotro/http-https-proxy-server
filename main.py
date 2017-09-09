@@ -28,6 +28,24 @@ class server_manager():
     requests_counter = 0
     thread_lock = threading.Lock()
     
+    
+    def clean(self):
+        while True:
+            for i in self.https_sesions:
+                if (datetime.datetime.now()-self.https_sesions[i]['stamp']).total_seconds()>7.0:
+                    try:
+                       
+                         self.https_sesions[i]['sesion'].close()
+                    except:pass
+                    
+                    try:
+                         del ( self.https_sesions[i])
+                    except:pass
+                    
+                    try:
+                        del(self.requests[i])
+                    except:pass
+    
     def get_next_request_count(self, *args):
         
         self.thread_lock.acquire()
@@ -35,6 +53,7 @@ class server_manager():
         self.requests_counter = res
         self.thread_lock.release()
         return res
+    
     
     def start_server(self):
         
@@ -47,6 +66,9 @@ class server_manager():
         sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         
         sock.bind((settings.remote_server_ip, settings.remote_server_port))
+
+        clth = threading.Thread(target=self.clean)
+        clth.start()
         
         while True:
             try:
@@ -354,7 +376,7 @@ class server_manager():
                 
                 
                 if json_data['request_id'] in self.https_sesions.keys():
-                    sesion = self.https_sesions[json_data['request_id']]
+                    sesion = self.https_sesions[json_data['request_id']]['sesion']
                     self.requests[json_data['request_id']]['responce'] = []
                     res = self.get_responce(request, sesion=sesion, https=True, request_id=json_data['request_id'])
                     if res:
@@ -373,7 +395,7 @@ class server_manager():
                     sesion = self.get_responce(request, sesion=None, https=True)
                     if sesion:
                         
-                        self.https_sesions[json_data['request_id']] = sesion
+                        self.https_sesions[json_data['request_id']] ={'sesion': sesion,'stamp':datetime.datetime.now()}
                     else:
                         conn.sendto('0'.encode(), addr)
                         
@@ -389,7 +411,8 @@ class server_manager():
             if json_data['request_id'] in self.requests:
                 del (self.requests[json_data['request_id']])
             if json_data['request_id'] in self.https_sesions:
-                self.https_sesions[json_data['request_id']].close()
+                self.https_sesions[json_data['request_id']]['sesion'].close()
+                
 
 
 def server():
