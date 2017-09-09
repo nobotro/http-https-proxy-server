@@ -31,20 +31,21 @@ class server_manager():
     
     def clean(self):
         while True:
-            for i in self.https_sesions:
-                if (datetime.datetime.now()-self.https_sesions[i]['stamp']).total_seconds()>settings.clean_time:
-                    try:
-                       
-                         self.https_sesions[i]['sesion'].close()
-                    except:pass
-                    
-                    try:
-                         del ( self.https_sesions[i])
-                    except:pass
-                    
-                    try:
-                        del(self.requests[i])
-                    except:pass
+            pass
+            # for i in self.https_sesions:
+            #     if (datetime.datetime.now()-self.https_sesions[i]['stamp']).total_seconds()>settings.clean_time:
+            #         try:
+            #
+            #              self.https_sesions[i]['sesion'].close()
+            #         except:pass
+            #
+            #         try:
+            #              del ( self.https_sesions[i])
+            #         except:pass
+            #
+            #         try:
+            #             del(self.requests[i])
+            #         except:pass
     
     def get_next_request_count(self, *args):
         
