@@ -30,7 +30,8 @@ class server_manager():
     
     
     def clean(self):
-        while True:
+         
+            
             for i in self.https_sesions:
                 if (datetime.datetime.now()-self.https_sesions[i]['stamp']).total_seconds()>settings.clean_time:
                     try:
@@ -67,8 +68,10 @@ class server_manager():
         
         sock.bind((settings.remote_server_ip, settings.remote_server_port))
 
-        # clth = threading.Thread(target=self.clean)
-        # clth.start()
+        from threading import Timer
+        t = Timer(5, self.clean);
+        
+        t.start()
         
         while True:
             try:
@@ -76,6 +79,7 @@ class server_manager():
                 data, addr = sock.recvfrom(65507)
                 
                 thr = threading.Thread(target=self.handle, args=(data, addr, sock))
+                thr.daemon = True
                 thr.start()
             except:
                 pass
@@ -396,11 +400,11 @@ class server_manager():
                     if sesion:
                         
                         
-                        # if self.https_sesions[json_data['request_id']]:
-                        #     self.https_sesions[json_data['request_id']]['sesion'].close()
-                        #     del(self.https_sesions[json_data['request_id']])
-                        #     logging.exception('**************************************************')
-                        #
+                        if self.https_sesions[json_data['request_id']]:
+                            self.https_sesions[json_data['request_id']]['sesion'].close()
+                            del(self.https_sesions[json_data['request_id']])
+                            logging.exception('**************************************************')
+
                             
                         self.https_sesions[json_data['request_id']] = {'sesion': sesion,
                                                                        'stamp': datetime.datetime.now()}
