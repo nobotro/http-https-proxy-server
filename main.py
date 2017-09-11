@@ -392,11 +392,13 @@ class server_manager():
                     sesion = self.https_sesions[json_data['request_id']]['sesion']
                 else:
                     sesion = self.get_responce(request, sesion=None, https=True)
-                    self.https_sesions[json_data['request_id']] = {'sesion': sesion,
+                    if sesion:
+                         self.https_sesions[json_data['request_id']] = {'sesion': sesion,
                                                                    'stamp': datetime.datetime.now()}
+                    else:raise Exception()
 
                 self.requests[json_data['request_id']]['responce'] = []
-                if not sesion :return
+                if not sesion :raise Exception()
                 res = self.get_responce(request, sesion=sesion, https=True, request_id=json_data['request_id'])
                 if res:
                     self.requests[json_data['request_id']]['responce'] += res
@@ -406,7 +408,7 @@ class server_manager():
                 else:
                     conn.sendto('0'.encode(), addr)
                     sesion.close()
-                    return
+                    raise  Exception()
                 
                 
                 
