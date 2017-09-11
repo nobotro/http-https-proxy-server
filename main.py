@@ -424,11 +424,12 @@ class server_manager():
                                                                        'stamp': datetime.datetime.now()}
 
 
-                    else:
-                        conn.sendto('0'.encode(), addr)
+                    
+                        conn.sendto('sesion_ack'.encode(), addr)
+                    else:raise Exception()
                         
                         
-                        return
+                    
             except:
                 conn.sendto('0'.encode(), addr)
                 return
