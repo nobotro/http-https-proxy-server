@@ -142,10 +142,12 @@ class server_manager():
                 # print(server_address)
                 try:
                     sock.connect(server_address)
+                    sock.sendall(requset.encode())
                 except Exception as e:
+                    sock.close()
                     logging.exception('message')
                     return
-                sock.sendall(requset.encode())
+              
                 
                 timeout = settings.global_timeout
                 while True:
@@ -159,7 +161,7 @@ class server_manager():
                         sock.settimeout(None)
                         timeout = (end - st).total_seconds() + 0.1
                     except:
-                        sock.settimeout(None)
+                        
                         sock.close()
                         
                         break
@@ -389,6 +391,7 @@ class server_manager():
                 if json_data['request_id'] in self.https_sesions.keys():
                     sesion = self.https_sesions[json_data['request_id']]['sesion']
                     self.requests[json_data['request_id']]['responce'] = []
+                    if not sesion :return
                     res = self.get_responce(request, sesion=sesion, https=True, request_id=json_data['request_id'])
                     if res:
                         self.requests[json_data['request_id']]['responce'] += res
