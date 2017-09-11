@@ -390,41 +390,27 @@ class server_manager():
                 
                 if json_data['request_id'] in self.https_sesions.keys():
                     sesion = self.https_sesions[json_data['request_id']]['sesion']
-                    self.requests[json_data['request_id']]['responce'] = []
-                    if not sesion :return
-                    res = self.get_responce(request, sesion=sesion, https=True, request_id=json_data['request_id'])
-                    if res:
-                        self.requests[json_data['request_id']]['responce'] += res
-                        fragment_list = self.requests[json_data['request_id']]['responce']
-                        # print('receive_fragment_count:' + str(len(fragment_list)))
-                        conn.sendto(str(len(fragment_list)).encode(), addr)
-                    else:
-                        conn.sendto('0'.encode(), addr)
-                        sesion.close()
-                        return
-                
-                
-                
                 else:
                     sesion = self.get_responce(request, sesion=None, https=True)
-                    if sesion:
-                        
-                        
-                        if json_data['request_id'] in self.https_sesions:
-                            self.https_sesions[json_data['request_id']]['sesion'].close()
-                            del(self.https_sesions[json_data['request_id']])
-                            logging.exception('**************************************************')
+                    self.https_sesions[json_data['request_id']] = {'sesion': sesion,
+                                                                   'stamp': datetime.datetime.now()}
 
-                            
-                        self.https_sesions[json_data['request_id']] = {'sesion': sesion,
-                                                                       'stamp': datetime.datetime.now()}
-
-
-                    else:
-                        conn.sendto('0'.encode(), addr)
-                        
-                        
-                        return
+                self.requests[json_data['request_id']]['responce'] = []
+                if not sesion :return
+                res = self.get_responce(request, sesion=sesion, https=True, request_id=json_data['request_id'])
+                if res:
+                    self.requests[json_data['request_id']]['responce'] += res
+                    fragment_list = self.requests[json_data['request_id']]['responce']
+                    # print('receive_fragment_count:' + str(len(fragment_list)))
+                    conn.sendto(str(len(fragment_list)).encode(), addr)
+                else:
+                    conn.sendto('0'.encode(), addr)
+                    sesion.close()
+                    return
+                
+                
+                
+               
             except:
                 conn.sendto('0'.encode(), addr)
                 return
