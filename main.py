@@ -391,8 +391,14 @@ class server_manager():
                 
                 if json_data['request_id'] in self.https_sesions.keys():
                     
-                    if json_data['first']:raise Exception()
+                    
+                    
+                    
                     sesion = self.https_sesions[json_data['request_id']]['sesion']
+
+                    if json_data['first']:
+                        conn.sendto('sesion_ack'.encode(), addr)
+                    
                     self.requests[json_data['request_id']]['responce'] = []
                     if sesion:
                           res = self.get_responce(request, sesion=sesion, https=True, request_id=json_data['request_id'])
