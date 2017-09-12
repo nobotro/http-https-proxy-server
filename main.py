@@ -38,7 +38,7 @@ class server_manager():
                     try:
                        
                          self.https_sesions[i]['sesion'].close()
-                         logging.info('deleted closed')
+                         
                     except:pass
                     
                     try:
@@ -207,6 +207,7 @@ class server_manager():
                         sock.settimeout(None)
                     except Exception as e:
                         sock.close()
+                        sock.settimeout(None)
                         logging.exception('message')
                         return ''
                     
@@ -426,16 +427,17 @@ class server_manager():
                                 del(self.https_sesions[json_data['request_id']])
                         except:
                             logging.exception('**************************************************')
-                            
+                            conn.sendto('0'.encode(), addr)
                         finally:
     
                             self.https_sesions[json_data['request_id']] = {'sesion': sesion,
                                                                            'stamp': datetime.datetime.now()}
+                            conn.sendto('sesion_ack'.encode(), addr)
                         
 
 
                     
-                        conn.sendto('sesion_ack'.encode(), addr)
+                         
                     else:raise Exception()
                         
                         
