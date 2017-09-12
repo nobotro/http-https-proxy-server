@@ -38,6 +38,7 @@ class server_manager():
                     try:
                        
                          self.https_sesions[i]['sesion'].close()
+                         logging.info('deleted closed')
                     except:pass
                     
                     try:
