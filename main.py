@@ -85,9 +85,9 @@ class server_manager():
 
         
 
-        thr = threading.Thread(target=self.clean)
-        thr.daemon = True
-        thr.start()
+        thr2 = threading.Thread(target=self.clean)
+        thr2.daemon = True
+        thr2.start()
         
         
        
