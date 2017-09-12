@@ -30,29 +30,36 @@ class server_manager():
     
     
     def clean(self):
+        
+        
+            while True:
+                
     
-            dell = []
-            for i in self.https_sesions:
-               
-                if (datetime.datetime.now()-self.https_sesions[i]['stamp']).total_seconds()>settings.clean_time:
+                dell = []
+                for i in self.https_sesions:
+                   
+                    if (datetime.datetime.now()-self.https_sesions[i]['stamp']).total_seconds()>settings.clean_time:
+                        try:
+                           
+                             self.https_sesions[i]['sesion'].close()
+                             
+                        except:pass
+                        
+                        try:
+                             dell.append(i)
+                        except:pass
+                        
+                        try:
+                            del(self.requests[i])
+                        except:pass
+                
+                for i in dell:
                     try:
-                       
-                         self.https_sesions[i]['sesion'].close()
-                         
+                        del(self.https_sesions[i])
                     except:pass
-                    
-                    try:
-                         dell.append(i)
-                    except:pass
-                    
-                    try:
-                        del(self.requests[i])
-                    except:pass
-            
-            for i in dell:
-                try:
-                    del(self.https_sesions[i])
-                except:pass
+                
+                
+                time.sleep(7)
                 
     
     def get_next_request_count(self, *args):
@@ -76,11 +83,14 @@ class server_manager():
         
         sock.bind((settings.remote_server_ip, settings.remote_server_port))
 
-        from threading import Timer
-        t = Timer(5, self.clean);
         
-        t.start()
+
+        thr = threading.Thread(target=self.clean)
+        thr.daemon = True
+        thr.start()
         
+        
+       
         while True:
             try:
                 
