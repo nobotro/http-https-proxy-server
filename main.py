@@ -303,7 +303,7 @@ class server_manager():
             print("received request with id: " + str(request_id))
             # logging.info("received request with id: "+str(request_id))
             resp = json.dumps({'request_id': request_id}, ensure_ascii=False).encode()
-            conn = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+            
             conn.sendto(resp, addr)
             
             # veb რექუესთების ლისტში,id-ის მიხედვით ვაგდებ ამ რექვესთს
@@ -332,7 +332,6 @@ class server_manager():
                 if res:
                     self.requests[json_data['request_id']]['responce'] += res
                 else:
-                    conn = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
                     conn.sendto(str('0').encode(), addr)
                     return
             
@@ -344,7 +343,7 @@ class server_manager():
                 len(fragment_list)))
             # logging.info("received url content with id: " + str(json_data['request_id'])+ ' fragment_count:' +str(len(fragment_list)))
             # print('receive_fragment_count:' +str(len(fragment_list)))
-            conn = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+            
             conn.sendto(str(len(fragment_list)).encode(), addr)
 
 
@@ -372,12 +371,11 @@ class server_manager():
                 resp_fr_data = ''
                 try:
                     resp_fr_data = self.requests[json_data['request_id']]['responce'][json_data['fr_index']]
-                    conn = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+                    
                     conn.sendto(resp_fr_data, addr)
                 
                 except Exception as e:
                     logging.exception('message')
-                    conn = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
                     conn.sendto(b'', addr)
                     print('+++++++is erori ' + str(json_data))
                 print("gaigzavna: " + str(json_data['request_id']) + ' and fragment id: ' + str(
@@ -391,14 +389,13 @@ class server_manager():
                 try:
                     request = self.requests[json_data['request_id']]['request']
                     if request == 'already_received':
-                        conn = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+                        
                         conn.sendto(str(len(self.requests[json_data['request_id']]['responce'])).encode(), addr)
                         return
                     else:
                         self.requests[json_data['request_id']]['request'] = 'already_received'
                         
                 except Exception as e:
-                    conn = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
                     conn.sendto('0'.encode(), addr)
                     print('((((((((((((((((((=erori da rame ' + str(json_data))
                     logging.exception('message')
@@ -412,7 +409,6 @@ class server_manager():
                     sesion = self.https_sesions[json_data['request_id']]['sesion']
 
                     if json_data['first']:
-                        conn = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
                         conn.sendto('sesion_ack'.encode(), addr)
                     
                     self.requests[json_data['request_id']]['responce'] = []
@@ -423,10 +419,8 @@ class server_manager():
                         self.requests[json_data['request_id']]['responce'] += res
                         fragment_list = self.requests[json_data['request_id']]['responce']
                         # print('receive_fragment_count:' + str(len(fragment_list)))
-                        conn = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
                         conn.sendto(str(len(fragment_list)).encode(), addr)
                     else:
-                        conn = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
                         conn.sendto('0'.encode(), addr)
                         sesion.close()
                         return
@@ -443,13 +437,11 @@ class server_manager():
                                 del(self.https_sesions[json_data['request_id']])
                         except:
                             logging.exception('**************************************************')
-                            conn = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
                             conn.sendto('0'.encode(), addr)
                         finally:
     
                             self.https_sesions[json_data['request_id']] = {'sesion': sesion,
                                                                            'stamp': datetime.datetime.now()}
-                            conn = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
                             conn.sendto('sesion_ack'.encode(), addr)
                         
 
@@ -461,7 +453,6 @@ class server_manager():
                         
                     
             except:
-                conn = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
                 conn.sendto('0'.encode(), addr)
                 return
         
