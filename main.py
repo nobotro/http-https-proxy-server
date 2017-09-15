@@ -241,7 +241,7 @@ class server_manager():
                             
                             sock.settimeout(timeout)
                             st = datetime.datetime.now()
-                            t_data = sock.recv(65000)
+                            t_data = sock.recv(10000)
                             end = datetime.datetime.now()
                             sock.settimeout(None)
                             timeout = (end - st).total_seconds() + 0.1
