@@ -210,7 +210,7 @@ class server_manager():
                             port = int(lr[1])
                         
                         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                        sock.setblocking(0)
+            
                         server_address = (host, port)
                         sock.settimeout(settings.global_timeout)
                         sock.connect(server_address)
