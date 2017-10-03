@@ -188,41 +188,7 @@ class server_manager():
             
             else:
                 
-                if not sesion:
-                    
-                    sock = ''
-                    try:
-                        _, headers = requset.split('\r\n', 1)
 
-                        # print('sgsg erori')
-                        
-                        # construct a message from the request string
-                        message = email.message_from_file(StringIO(headers))
-                        
-                        # construct a dictionary containing the headers
-                        headers = dict(message.items())
-                        headers['method'], headers['path'], headers['http-version'] = _.split()
-                        
-                        host = headers['path']
-                        lr = host.split(':')
-                        host = lr[0]
-                        if len(lr) == 2:
-                            port = int(lr[1])
-                        
-                        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            
-                        server_address = (host, port)
-                        sock.settimeout(settings.global_timeout)
-                        sock.connect(server_address)
-                        sock.settimeout(None)
-                    except Exception as e:
-                        sock.close()
-                        sock.settimeout(None)
-                        logging.exception('message')
-                        return ''
-                    
-                    return sock
-                else:
                     # print('ses'+str(sesion))
                     sock = sesion
                     
@@ -302,6 +268,21 @@ class server_manager():
                 request_id = json_data['request_id']
             print("received request with id: " + str(request_id))
             # logging.info("received request with id: "+str(request_id))
+
+            if json_data['port'] and json_data['host']:
+                sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
+                server_address = (json_data['host'], json_data['port'])
+                sock.settimeout(settings.global_timeout)
+                sock.connect(server_address)
+                sock.settimeout(None)
+                self.https_sesions[json_data['request_id']] = {'sesion': sock,
+                                                                   'stamp': datetime.datetime.now()}
+
+
+
+
+
             resp = json.dumps({'request_id': request_id}, ensure_ascii=False).encode()
             
             conn.sendto(resp, addr)
@@ -408,9 +389,7 @@ class server_manager():
                     
                     sesion = self.https_sesions[json_data['request_id']]['sesion']
 
-                    if json_data['first']:
-                        conn.sendto('sesion_ack'.encode(), addr)
-                    
+
                     self.requests[json_data['request_id']]['responce'] = []
                     if sesion:
                           res = self.get_responce(request, sesion=sesion, https=True, request_id=json_data['request_id'])
@@ -424,34 +403,15 @@ class server_manager():
                         conn.sendto('0'.encode(), addr)
                         sesion.close()
                         return
-                
-                
-                
-                else:
-                    sesion = self.get_responce(request, sesion=None, https=True)
-                    if sesion:
-                        
-                        try:
-                            if json_data['request_id'] in self.https_sesions:
-                                self.https_sesions[json_data['request_id']]['sesion'].close()
-                                del(self.https_sesions[json_data['request_id']])
-                        except:
-                            logging.exception('**************************************************')
-                            conn.sendto('0'.encode(), addr)
-                        finally:
-    
-                            self.https_sesions[json_data['request_id']] = {'sesion': sesion,
-                                                                           'stamp': datetime.datetime.now()}
-                            conn.sendto('sesion_ack'.encode(), addr)
-                        
 
 
-                    
-                         
-                    else:raise Exception()
-                        
-                        
-                    
+
+
+
+                else:raise Exception()
+
+
+
             except:
                 conn.sendto('0'.encode(), addr)
                 return
