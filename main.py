@@ -256,24 +256,20 @@ class server_manager():
 
             if 'request_id' not in json_data.keys():
                 request_id = str(self.get_next_request_count())
-                if json_data['port'] and json_data['host']:
-                    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-
-                    server_address = (json_data['host'], json_data['port'])
-                    sock.settimeout(settings.global_timeout)
-                    sock.connect(server_address)
-                    sock.settimeout(None)
-                    self.https_sesions[request_id] = {'sesion': sock,
-                                                      'stamp': datetime.datetime.now()}
-
-
             else:
                 request_id = json_data['request_id']
             print("received request with id: " + str(request_id))
             # logging.info("received request with id: "+str(request_id))
 
-            self.requests[request_id] = {'request': json_data['data']}
-            self.requests[request_id]['responce'] = []
+            if json_data['port'] and json_data['host']:
+                sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
+                server_address = (json_data['host'], json_data['port'])
+                sock.settimeout(settings.global_timeout)
+                sock.connect(server_address)
+                sock.settimeout(None)
+                self.https_sesions[json_data['request_id']] = {'sesion': sock,
+                                                               'stamp': datetime.datetime.now()}
 
             resp = json.dumps({'request_id': request_id}, ensure_ascii=False).encode()
 
@@ -283,6 +279,8 @@ class server_manager():
 
 
 
+            self.requests[request_id] = {'request': json_data['data']}
+            self.requests[request_id]['responce'] = []
 
 
         # ეს ბრძანება მოდის როცა კლიენტი გვეკითხება თუ ვებ respon-სის რამდენი ფრაგმენტს ელოდოს ჩვენგან
