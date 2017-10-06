@@ -386,10 +386,15 @@ class server_manager():
                         # print('receive_fragment_count:' + str(len(fragment_list)))
                         ffragment = base64.encodebytes(res[0]).decode()
                         json_responce = json.dumps({'len': len(fragment_list), 'fragment': ffragment},
-                                                   ensure_ascii=False).encode()
-
+                                                ensure_ascii=False).encode()
+                        #
                         conn.sendto(json_responce, addr)
 
+
+                    #     fragment_list = self.requests[json_data['request_id']]['responce']
+                    #     # print('receive_fragment_count:' + str(len(fragment_list)))
+                    #     conn.sendto(str(len(fragment_list)).encode(), addr)
+                    # else:
                     else:
                         conn.sendto('0'.encode(), addr)
                         sesion.close()
