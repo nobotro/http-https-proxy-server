@@ -382,6 +382,7 @@ class server_manager():
                         raise Exception()
                     if res:
                         self.requests[json_data['request_id']]['responce'] += res
+                        self.requests[json_data['request_id']]['responce'][0]=''
                         fragment_list = self.requests[json_data['request_id']]['responce']
                         # print('receive_fragment_count:' + str(len(fragment_list)))
                         ffragment = base64.encodebytes(res[0]).decode()
