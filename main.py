@@ -388,6 +388,8 @@ class server_manager():
                         ffragment = base64.encodebytes(res[0]).decode()
                         json_responce = json.dumps({'len': len(fragment_list), 'fragment': ffragment},
                                                 ensure_ascii=False).encode()
+
+                        print('wavida responi'+str(json_data['request_id']))
                         #
                         conn.sendto(json_responce, addr)
 
