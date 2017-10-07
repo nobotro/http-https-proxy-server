@@ -357,19 +357,15 @@ class server_manager():
         elif json_data['op'] == 'https_receive_fr_count':
 
             try:
-                try:
-                    request = self.requests[json_data['request_id']]['request']
-                    if request == 'already_received':
 
-                        conn.sendto(str(len(self.requests[json_data['request_id']]['responce'])).encode(), addr)
-                        return
-                    else:
-                        self.requests[json_data['request_id']]['request'] = 'already_received'
+                request = self.requests[json_data['request_id']]['request']
+                if request == 'already_received':
 
-                except Exception as e:
-                    conn.sendto('0'.encode(), addr)
-                    print('((((((((((((((((((=erori da rame ' + str(json_data))
-                    logging.exception('message')
+                    conn.sendto(str(len(self.requests[json_data['request_id']]['responce'])).encode(), addr)
+                    return
+                else:
+                    self.requests[json_data['request_id']]['request'] = 'already_received'
+
 
                 if json_data['request_id'] in self.https_sesions.keys():
 
@@ -379,7 +375,7 @@ class server_manager():
                     if sesion:
                         res = self.get_responce(request, sesion=sesion, https=True, request_id=json_data['request_id'])
                     else:
-                        raise Exception()
+                        raise Exception('not sesion exception')
                     if res:
                         self.requests[json_data['request_id']]['responce'] += res
                         self.requests[json_data['request_id']]['responce'][0]=''
@@ -399,20 +395,23 @@ class server_manager():
                     #     conn.sendto(str(len(fragment_list)).encode(), addr)
                     # else:
                     else:
-                        conn.sendto('0'.encode(), addr)
+
                         sesion.close()
-                        return
+                        raise Exception('responsi carielia erori')
+
+
 
 
 
 
 
                 else:
-                    raise Exception()
+                    raise Exception('sesia araa erori')
 
 
 
             except:
+                logging.exception('message')
                 conn.sendto('0'.encode(), addr)
                 return
 
