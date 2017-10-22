@@ -160,10 +160,10 @@ class server_manager():
 
                         sock.settimeout(timeout)
                         st = datetime.datetime.now()
-                        temp = sock.recv(2000)
+                        temp = sock.recv(20000)
                         end = datetime.datetime.now()
                         sock.settimeout(None)
-                        timeout = (end - st).total_seconds() + 0.1
+
                     except:
 
                         sock.close()
@@ -185,49 +185,12 @@ class server_manager():
                 sock = sesion
 
                 requset = base64.decodebytes(requset.encode())
-                try:
-                    sock.settimeout(settings.global_timeout)
-                    sock.sendall(requset)
-                    sock.settimeout(None)
-                except:
-                    sock.close()
 
-                    return None
-                timeout = settings.global_timeout
-                while True:
-                    try:
-
-                        sock.settimeout(timeout)
-                        st = datetime.datetime.now()
-                        t_data = sock.recv(65000)
-                        end = datetime.datetime.now()
-                        sock.settimeout(None)
-                        timeout = (end - st).total_seconds() + 0.1
-                        if t_data:
-                            data += t_data
-                        else:
-                            sock.close()
-                            del (self.https_sesions[request_id])
+                sock.sendall(requset)
 
 
+                data= sock.recv(65000)
 
-                    except socket.timeout:
-
-                        sock.settimeout(None)
-                        break
-                    except:
-                        if sock:
-                            try:
-                                sock.settimeout(None)
-                                sock.close()
-                            except Exception as e:
-
-                                sock.close()
-                                logging.exception("message")
-                                logging.info('tipi' + str(sock) + ' :' + str(type(sock)))
-                                print('tipi' + str(sock) + ' :' + str(type(sock)))
-
-                        break
                 # data = gzip.compress(data, compresslevel=6)
                 info = [data[i:i + settings.max_fragment_size] for i in
                         range(0, len(data), settings.max_fragment_size)]
@@ -269,7 +232,7 @@ class server_manager():
 
             else:
                 request_id = json_data['request_id']
-            print("received request with id: " + str(request_id))
+            print("received request with id: " + str(json_data))
             # logging.info("received request with id: "+str(request_id))
 
             self.requests[request_id] = {'request': json_data['data']}
