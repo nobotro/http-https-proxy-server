@@ -188,8 +188,10 @@ class server_manager():
 
                 sock.sendall(requset)
 
+                timeout = settings.global_timeout
+                data=b''
 
-                data= sock.recv(65000)
+                data=sock.recv(65000)
 
                 # data = gzip.compress(data, compresslevel=6)
                 info = [data[i:i + settings.max_fragment_size] for i in
