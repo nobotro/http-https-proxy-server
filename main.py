@@ -191,7 +191,15 @@ class server_manager():
                 timeout = settings.global_timeout
                 data=b''
 
+                patern=b'\x16\x03\x03'
+                datapatern=b'\x17\x03\x03'
                 data=sock.recv(65000)
+                if(data.startswith(datapatern)):
+                    while True:
+                        temp=sock.recv(65000)
+                        if temp:
+                            data+=temp
+                        else:break
 
                 # data = gzip.compress(data, compresslevel=6)
                 info = [data[i:i + settings.max_fragment_size] for i in
