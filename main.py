@@ -6,6 +6,7 @@ import socket
 import sys
 import io
 import threading
+from struct import unpack
 from urllib.parse import urlparse
 
 import settings
@@ -179,9 +180,11 @@ class server_manager():
 
 
 
+
             else:
 
                 # print('ses'+str(sesion))
+
                 sock = sesion
 
                 requset = base64.decodebytes(requset.encode())
@@ -189,21 +192,115 @@ class server_manager():
                 sock.sendall(requset)
 
                 timeout = settings.global_timeout
-                data=b''
 
-                patern=b'\x16\x03\x03'
-                datapatern=b'\x17\x03\x03'
-                data=sock.recv(65000)
-                if(data.startswith(datapatern)):
-                    while True:
-                        temp=sock.recv(65000)
-                        if temp:
-                            data+=temp
-                        else:break
+                recchaci = b'\x14\x03'
 
-                # data = gzip.compress(data, compresslevel=6)
+                recalert = b'\x15\x03'
+
+                rechand = b'\x16\x03'
+
+                datarec = b'\x17\x03'
+
+                patterns = [recchaci, recalert, rechand, datarec]
+
+                # otxive davdzebnot da amovigot bolos wina end() pozicia
+
+                data = b''
+
+                while True:
+
+                    try:
+
+
+                        sock.settimeout(timeout)
+
+                        temp= sock.recv(65000)
+                        data+=temp
+
+                        sock.settimeout(None)
+                        print('avoie '+str(len(temp)))
+                        indices = []
+                        mp=[]
+                        for pat in patterns:
+                            indices.append(data.rfind(pat))
+                            mp.append(pat)
+                        print(str(indices))
+                        print(str(mp))
+
+                        last = max(indices)
+
+                        if last+unpack('!H', data[last + 3:last + 5])[0] +5==len(data):
+
+                            print('&^%##$%##################')
+                            print(str(data))
+
+                            timeout = 0.4
+
+                        else:
+                            timeout = settings.global_timeout
+
+
+
+
+
+                        # data=sock.recv(65000)
+
+                        # datalen=len(data)
+
+
+                        #
+
+                        #
+
+                        # if data.startswith(rechand):
+
+                        #     reclen=struct.unpack('!H',data[3:5])[0]+5
+
+                        #     if datalen>reclen
+
+
+
+
+                        # else:
+
+                        #     sock.close()
+
+                        #     del (self.https_sesions[request_id])
+
+                    except socket.timeout:
+
+                        print('abababababab')
+
+                        break
+
+
+
+                    except Exception as e:
+
+                        if sock:
+
+                            try:
+
+                                sock.settimeout(None)
+
+                                sock.close()
+
+                            except Exception as e:
+
+                                sock.close()
+
+                                logging.exception("message")
+
+                                logging.info('tipi' + str(sock) + ' :' + str(type(sock)))
+
+                                print('tipi' + str(sock) + ' :' + str(type(sock)))
+
+                        break
+
                 info = [data[i:i + settings.max_fragment_size] for i in
+
                         range(0, len(data), settings.max_fragment_size)]
+
                 return info
 
             # data = gzip.compress(data, compresslevel=6)
