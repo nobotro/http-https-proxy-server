@@ -210,17 +210,16 @@ class server_manager():
                 while True:
 
                     try:
-
-
-                        sock.settimeout(timeout)
-
-                        temp= sock.recv(65000)
-                        data+=temp
-
+                        temp=b''
+                        sock.settimeout(0.1)
+                        temp = sock.recv(1)
                         sock.settimeout(None)
-                        print('avoie '+str(len(temp)))
+                        if len(temp) != 1: break
+                        temp += sock.recv(65000)
+                        data += temp
+                        print('avoie ' + str(len(temp)))
                         indices = []
-                        mp=[]
+                        mp = []
                         for pat in patterns:
                             indices.append(data.rfind(pat))
                             mp.append(pat)
@@ -228,18 +227,10 @@ class server_manager():
                         print(str(mp))
 
                         last = max(indices)
+                        if last != -1:
 
-                        if last+unpack('!H', data[last + 3:last + 5])[0] +5==len(data):
-
-                            print('&^%##$%##################')
-                            print(str(data))
-
-                            timeout = 0.4
-
-                        else:
-                            timeout = settings.global_timeout
-
-
+                            if last + unpack('!H', data[last + 3:last + 5])[0] + 5 == len(data):
+                                print('&^%##$%##################')
 
 
 
@@ -269,33 +260,33 @@ class server_manager():
 
                     except socket.timeout:
 
-                        print('abababababab')
+                            print('abababababab')
 
-                        break
+                            break
 
 
 
                     except Exception as e:
 
-                        if sock:
+                            if sock:
 
-                            try:
+                                try:
 
-                                sock.settimeout(None)
+                                    sock.settimeout(None)
 
-                                sock.close()
+                                    sock.close()
 
-                            except Exception as e:
+                                except Exception as e:
 
-                                sock.close()
+                                    sock.close()
 
-                                logging.exception("message")
+                                    logging.exception("message")
 
-                                logging.info('tipi' + str(sock) + ' :' + str(type(sock)))
+                                    logging.info('tipi' + str(sock) + ' :' + str(type(sock)))
 
-                                print('tipi' + str(sock) + ' :' + str(type(sock)))
+                                    print('tipi' + str(sock) + ' :' + str(type(sock)))
 
-                        break
+                            break
 
                 info = [data[i:i + settings.max_fragment_size] for i in
 
