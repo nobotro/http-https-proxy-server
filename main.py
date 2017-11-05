@@ -154,29 +154,46 @@ class server_manager():
                     logging.exception('message')
                     return
 
-                timeout = settings.global_timeout
                 while True:
-                    temp = None
+
                     try:
-
-                        sock.settimeout(timeout)
-                        st = datetime.datetime.now()
-                        temp = sock.recv(20000)
-                        end = datetime.datetime.now()
+                        temp=b''
+                        sock.settimeout(0.1)
+                        temp = sock.recv(1)
                         sock.settimeout(None)
-
-                    except:
-
-                        sock.close()
-
-                        break
-
-                    if temp:
+                        if len(temp) != 1: break
+                        temp += sock.recv(65000)
                         data += temp
-                    else:
-                        sock.close()
-                        break
+                        print('avoie ' + str(len(temp)))
 
+
+
+                    except Exception as e:
+
+                        if sock:
+
+                            try:
+
+                                sock.settimeout(None)
+
+                                sock.close()
+
+                            except Exception as e:
+
+                                sock.close()
+
+                                logging.exception("message")
+
+                                logging.info('tipi' + str(sock) + ' :' + str(type(sock)))
+
+                                print('tipi' + str(sock) + ' :' + str(type(sock)))
+
+                        break
+                    except socket.timeout:
+
+                            print('abababababab')
+
+                            break
 
 
 
@@ -361,22 +378,26 @@ class server_manager():
                 del (self.requests[json_data['request_id']]['request'])
                 self.requests[json_data['request_id']]['responce'] = []
                 res = self.get_responce(request)
+
+
                 if res:
                     self.requests[json_data['request_id']]['responce'] += res
+
+                    self.requests[json_data['request_id']]['responce'][0] = ''
+                    fragment_list = self.requests[json_data['request_id']]['responce']
+                    # print('receive_fragment_count:' + str(len(fragment_list)))
+                    ffragment = base64.encodebytes(res[0]).decode()
+                    json_responce = json.dumps({'len': len(fragment_list), 'fragment': ffragment},
+                                               ensure_ascii=False).encode()
+
+
+                    print('wavida responi' + str(json_data['request_id']))
+                    #
+                    conn.sendto(json_responce, addr)
+
                 else:
                     conn.sendto(str('0').encode(), addr)
                     return
-
-            print("received url content with id: " + str(json_data['request_id']))
-            # logging.info("received url content with id: " + str(json_data['request_id']))
-
-            fragment_list = self.requests[json_data['request_id']]['responce']
-            print("received url content with id: " + str(json_data['request_id']) + ' fragment_count:' + str(
-                len(fragment_list)))
-            # logging.info("received url content with id: " + str(json_data['request_id'])+ ' fragment_count:' +str(len(fragment_list)))
-            # print('receive_fragment_count:' +str(len(fragment_list)))
-
-            conn.sendto(str(len(fragment_list)).encode(), addr)
 
 
         # თუ ეს ბრძანება მივიღეთ ესეიგი კლიენტი ითხოვს ვებ რესპონსის კონკრეტულ ფრაგმენტს ჩვენგან
