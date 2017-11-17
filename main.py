@@ -347,7 +347,7 @@ class server_manager():
 
             else:
                 request_id = json_data['request_id']
-            print("received request with id: " + str(json_data))
+            print("received request with id: " + str(request_id))
             # logging.info("received request with id: "+str(request_id))
 
             self.requests[request_id] = {'request': json_data['data']}
