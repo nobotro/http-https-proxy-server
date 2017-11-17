@@ -222,13 +222,13 @@ class server_manager():
 
                 # otxive davdzebnot da amovigot bolos wina end() pozicia
 
-                data = b''
+                data =sock.recv(65000)
 
                 while True:
 
                     try:
                         temp=b''
-                        sock.settimeout(0.1)
+                        sock.settimeout(0.3)
                         temp = sock.recv(1)
                         sock.settimeout(None)
                         if len(temp) != 1: break
@@ -358,7 +358,6 @@ class server_manager():
             conn.sendto(resp, addr)
 
             # veb რექუესთების ლისტში,id-ის მიხედვით ვაგდებ ამ რექვესთს
-
 
 
 
