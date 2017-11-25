@@ -70,22 +70,11 @@ class server_manager():
         self.thread_lock.release()
         return res
 
-    def start_server(self):
 
-        print('[*] start proxy server at ip {} and port {}'.format(settings.remote_server_ip,
-                                                                   str(settings.remote_server_port)))
-        print('[*] protocol http/https')
-        print('[*] socket protocol udp')
-        print('[*] time:' + str(datetime.datetime.now()))
-
+    def port_range_mapper(self,range_port):
         sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
-        sock.bind((settings.remote_server_ip, settings.remote_server_port))
-
-        thr2 = threading.Thread(target=self.clean)
-        thr2.daemon = True
-        thr2.start()
-
+        sock.bind((settings.remote_server_ip,range_port))
         while True:
             try:
 
@@ -96,6 +85,24 @@ class server_manager():
                 thr.start()
             except:
                 pass
+
+    def start_server(self):
+
+        print('[*] start proxy server at ip {} and port {}'.format(settings.remote_server_ip,'-ranged port-'))
+        print('[*] protocol http/https')
+        print('[*] socket protocol udp')
+        print('[*] time:' + str(datetime.datetime.now()))
+
+        thr2 = threading.Thread(target=self.clean)
+        thr2.daemon = True
+        thr2.start()
+
+        for i in settings.remote_server_port_range:
+            thr2 = threading.Thread(target=self.port_range_mapper,args=(i,))
+            thr2.daemon = True
+            thr2.start()
+
+
 
 
 
@@ -219,61 +226,32 @@ class server_manager():
                 datarec = b'\x17\x03'
 
                 patterns = [recchaci, recalert, rechand, datarec]
-
+                timeout=0.1
+                dataindex=0
                 # otxive davdzebnot da amovigot bolos wina end() pozicia
-
+                if requset.startswith(datarec):timeout=0.5
                 data =sock.recv(65000)
 
                 while True:
 
                     try:
-                        temp=b''
-                        sock.settimeout(0.3)
-                        temp = sock.recv(1)
-                        sock.settimeout(None)
-                        if len(temp) != 1: break
-                        temp += sock.recv(65000)
-                        data += temp
-                        print('avoie ' + str(len(temp)))
-                        indices = []
-                        mp = []
-                        for pat in patterns:
-                            indices.append(data.rfind(pat))
-                            mp.append(pat)
-                        print(str(indices))
-                        print(str(mp))
-
-                        last = max(indices)
-                        if last != -1:
-
-                            if last + unpack('!H', data[last + 3:last + 5])[0] + 5 == len(data):
-                                print('&^%##$%##################')
 
 
+                            if not dataindex:
+                                dataindex = data.rfind(datarec)
 
-                        # data=sock.recv(65000)
+                            if dataindex != -1:
+                                timeout = 0.5
 
-                        # datalen=len(data)
-
-
-                        #
-
-                        #
-
-                        # if data.startswith(rechand):
-
-                        #     reclen=struct.unpack('!H',data[3:5])[0]+5
-
-                        #     if datalen>reclen
-
-
-
-
-                        # else:
-
-                        #     sock.close()
-
-                        #     del (self.https_sesions[request_id])
+                            temp = b''
+                            sock.settimeout(timeout)
+                            temp = sock.recv(1)
+                            sock.settimeout(None)
+                            if len(temp) != 1:
+                                sock.settimeout(None)
+                                break
+                            temp += sock.recv(65000)
+                            data += temp
 
                     except socket.timeout:
 
