@@ -94,12 +94,12 @@ class server_manager():
         print('[*] time:' + str(datetime.datetime.now()))
 
         thr2 = threading.Thread(target=self.clean)
-        thr2.daemon = True
+
         thr2.start()
 
         for i in settings.remote_server_port_range:
             thr2 = threading.Thread(target=self.port_range_mapper,args=(i,))
-            thr2.daemon = True
+
             thr2.start()
 
 
