@@ -226,10 +226,10 @@ class server_manager():
                 datarec = b'\x17\x03'
 
                 patterns = [recchaci, recalert, rechand, datarec]
-                timeout=0.1
+                timeout=0.6
                 dataindex=0
                 # otxive davdzebnot da amovigot bolos wina end() pozicia
-                if requset.startswith(datarec):timeout=0.5
+                if requset.startswith(datarec):timeout=0.6
                 data =sock.recv(65000)
 
                 while True:
@@ -255,7 +255,6 @@ class server_manager():
 
                     except socket.timeout:
 
-                            print('abababababab')
 
                             break
 
@@ -312,6 +311,7 @@ class server_manager():
 
             if 'request_id' not in json_data.keys():
                 request_id = str(self.get_next_request_count())
+                print('{} ,-> movida reqvestis data hosti {} da porti {} , zoma {}'.format(request_id,json_data['host'],json_data['port'],len(json_data['data'])))
                 if json_data['port'] and json_data['host']:
                     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
@@ -325,7 +325,9 @@ class server_manager():
 
             else:
                 request_id = json_data['request_id']
-            print("received request with id: " + str(request_id))
+                print('{} ,-> movida reqvestis data , zoma {}'.format(request_id,len(json_data['data'])))
+
+
             # logging.info("received request with id: "+str(request_id))
 
             self.requests[request_id] = {'request': json_data['data']}
@@ -334,6 +336,8 @@ class server_manager():
             resp = json.dumps({'request_id': request_id}, ensure_ascii=False).encode()
 
             conn.sendto(resp, addr)
+            print('{} ,<- gavagzavne reqvestis dataze acki , zoma {}'.format(request_id, len(json_data['data'])))
+
 
             # veb რექუესთების ლისტში,id-ის მიხედვით ვაგდებ ამ რექვესთს
 
@@ -382,6 +386,8 @@ class server_manager():
 
             if 'action' in json_data.keys():
 
+                print('{} ,-> movida fragmentis washlis brdzaneba ,indeqsi {}'.format(json_data['request_id'],json_data['fr_index']))
+
                 # დასაფიქსია
                 try:
                     self.requests[json_data['request_id']]['responce'][json_data['fr_index']] = ''
@@ -392,8 +398,9 @@ class server_manager():
 
             else:
 
-                print("fragment request with id: " + str(json_data['request_id']) + ' and fragment id: ' + str(
-                    json_data['fr_index']))
+                print('{} ,-> movida fragmentis migebis brdzaneba ,indeqsi {}'.format(json_data['request_id'],json_data['fr_index']))
+
+
                 # logging.info("fragment request with id: " + str(json_data['request_id'])+' and fragment id: '+str(json_data['fr_index']))
 
 
@@ -403,6 +410,9 @@ class server_manager():
                     resp_fr_data = self.requests[json_data['request_id']]['responce'][json_data['fr_index']]
 
                     conn.sendto(resp_fr_data, addr)
+                    print('{} ,<- gavagzavne fragmenti ,indeqsi {}'.format(json_data['request_id'],
+                                                                                          json_data['fr_index']))
+
 
                 except Exception as e:
                     logging.exception('message')
@@ -418,6 +428,8 @@ class server_manager():
             try:
 
                 request = self.requests[json_data['request_id']]['request']
+                print('{} ,-> movida count(fragmentis) migebis brdzaneba ,indeqsi {}'.format(json_data['request_id']))
+
                 if request == 'already_received':
 
                     conn.sendto(str(len(self.requests[json_data['request_id']]['responce'])).encode(), addr)
@@ -432,7 +444,11 @@ class server_manager():
 
                     self.requests[json_data['request_id']]['responce'] = []
                     if sesion:
+                        nt=datetime.datetime.now()
                         res = self.get_responce(request, sesion=sesion, https=True, request_id=json_data['request_id'])
+                        nt2=datetime.datetime.now()
+                        print('{} ,- mivige data web serverisgan ,zoma {}, dro {}'.format(json_data['request_id'],len(res),(nt2-nt).total_seconds()))
+
                     else:
                         raise Exception('not sesion exception')
                     if res:
